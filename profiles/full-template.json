@@ -1,0 +1,59 @@
+{
+    "name": "TEMPLATE: Full Roast Profile",
+    "author": "Your Name",
+    "description": "A template with all recommended fields.",
+    "beanInfo": {
+        "origin": "Ethiopia",
+        "process": "Washed",
+        "cropYear": "2024",
+        "targetRoastLevel": "City+"
+    },
+    "points": [
+        {
+            "tS": 0,
+            "tempC": 150
+        },
+        {
+            "tS": 300,
+            "tempC": 150
+        },
+        {
+            "tS": 330,
+            "tempC": 235
+        },
+        {
+            "tS": 840,
+            "tempC": 235
+        },
+        {
+            "tS": 960,
+            "tempC": 220
+        }
+    ],
+    "events": [
+        {
+            "tS": 0,
+            "label": "Charge",
+            "instruction": "Preheat drum to 200C, then add beans and set to 150C.",
+            "requireAck": true
+        },
+        {
+            "tS": 300,
+            "label": "Dry End",
+            "instruction": "Beans turning yellow/white. Crank temp to 235C.",
+            "requireAck": false
+        },
+        {
+            "tS": 800,
+            "label": "Listen for 1C",
+            "instruction": "First crack expected soon.",
+            "requireAck": false
+        },
+        {
+            "tS": 960,
+            "label": "Drop",
+            "instruction": "Roast complete. Emergency Stop to eject beans.",
+            "requireAck": true
+        }
+    ]
+}

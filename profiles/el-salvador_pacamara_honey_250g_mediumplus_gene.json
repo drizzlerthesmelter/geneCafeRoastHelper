@@ -1,0 +1,103 @@
+{
+  "name": "El Salvador Apaneca Santa Elena Pacamara Honey 250g — Medium+",
+  "author": "Gene Cafe Roast Profilist",
+  "description": "Goal: Medium+ (Full City+ range), emphasizing caramel/milk-chocolate sweetness while keeping a hint of cherry fruit; finish with almond/nutty depth. Bean: El Salvador Apaneca-Ilamatepec, Pacamara, Honey, 1850m.\n\nGene Cafe setup:\n- Batch: 250g.\n- Preheat EMPTY to 205°C until stable (helps avoid sluggish mid-roast).\n- Use external fast cooling after DROP (colander + strong fan) to prevent baked/flat cup.\n\nTime formats used below:\n- Elapsed mm:ss\n- Gene-decimal minutes (minutes + seconds/60, rounded to 0.1)\n- Reverse (time remaining on Gene display) assuming total 14:00\n\nTargets (adjust next roast using your actual first-crack time):\n- Drying end: ~04:30\n- First crack: ~10:00–10:45\n- Development: ~03:00–03:30 after 1C start (≈22–26% dev ratio)\n- Drop: at the *first signs of 2C* (faster ticking) or just before if you want cleaner sweetness.\n",
+  "beanInfo": {
+    "origin": "El Salvador — Apaneca Ilamatepec (Santa Elena / Ilamatepec terroir); Producer: Fernando Lima",
+    "process": "Honey (drying beds)",
+    "cropYear": "2023/2024",
+    "targetRoastLevel": "Medium+ (Full City+)"
+  },
+  "points": [
+    {
+      "tS": 0,
+      "tempC": 165
+    },
+    {
+      "tS": 90,
+      "tempC": 165
+    },
+    {
+      "tS": 90,
+      "tempC": 235
+    },
+    {
+      "tS": 510,
+      "tempC": 235
+    },
+    {
+      "tS": 510,
+      "tempC": 242
+    },
+    {
+      "tS": 615,
+      "tempC": 242
+    },
+    {
+      "tS": 615,
+      "tempC": 230
+    },
+    {
+      "tS": 750,
+      "tempC": 230
+    },
+    {
+      "tS": 750,
+      "tempC": 236
+    },
+    {
+      "tS": 840,
+      "tempC": 236
+    }
+  ],
+  "events": [
+    {
+      "tS": 0,
+      "label": "Charge / Start",
+      "instruction": "PREHEAT first: run empty at 205°C until stable.\nLoad 250g. Set total time 14:00 and set temp 165°C, press Start.\nElapsed 00:00 (0.0) | Remaining 14:00 (14.0)",
+      "requireAck": true
+    },
+    {
+      "tS": 90,
+      "label": "Ramp to 235°C",
+      "instruction": "Set 235°C now.\nElapsed 01:30 (1.5) | Remaining 12:30 (12.5)",
+      "requireAck": true
+    },
+    {
+      "tS": 270,
+      "label": "Drying check",
+      "instruction": "At ~04:30 you want clear yellowing and reduced grassy smell.\nIf still green-ish, delay the 242°C step by 30–60s next roast OR preheat a bit higher.\nElapsed 04:30 (4.5) | Remaining 09:30 (9.5)",
+      "requireAck": false
+    },
+    {
+      "tS": 510,
+      "label": "Push to 242°C",
+      "instruction": "Set 242°C to drive into first crack with enough energy for Medium+.\nElapsed 08:30 (8.5) | Remaining 05:30 (5.5)",
+      "requireAck": true
+    },
+    {
+      "tS": 600,
+      "label": "First crack window opens",
+      "instruction": "Start listening hard for 1C (distinct snaps). If 1C is already rolling strongly, be ready to reduce at 10:15.\nElapsed 10:00 (10.0) | Remaining 04:00 (4.0)",
+      "requireAck": false
+    },
+    {
+      "tS": 615,
+      "label": "Development control: 230°C",
+      "instruction": "Set 230°C to manage momentum through development (avoid runaway into 2C too fast).\nElapsed 10:15 (10.3) | Remaining 03:45 (3.8)",
+      "requireAck": true
+    },
+    {
+      "tS": 750,
+      "label": "Nudge to 236°C",
+      "instruction": "Set 236°C to keep the roast moving toward Medium+ without stalling.\nWatch for the aroma shift toward deeper caramel/cocoa and the start of quicker ticking (2C approaching).\nElapsed 12:30 (12.5) | Remaining 01:30 (1.5)",
+      "requireAck": true
+    },
+    {
+      "tS": 840,
+      "label": "DROP",
+      "instruction": "Drop at first signs of 2C (faster ticking) for Medium+.\nEJECT and cool externally fast (fan).\nElapsed 14:00 (14.0) | Remaining 00:00 (0.0)\n\nNext-roast quick tweaks:\n- Too dark / smoky / ashy: drop 15–30s earlier OR reduce the final setpoint to 232–234°C.\n- Too light / peanutty / sharp: extend +15–30s OR keep 242°C an extra 15–30s before stepping down.\n- Baked/flat: raise the early ramp (start 170°C) or preheat to 210°C.",
+      "requireAck": true
+    }
+  ]
+}

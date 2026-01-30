@@ -1,0 +1,61 @@
+{
+    "name": "Gene Cafe: Standard Roast",
+    "points": [
+        {
+            "tS": 0,
+            "tempC": 150
+        },
+        {
+            "tS": 300,
+            "tempC": 150
+        },
+        {
+            "tS": 330,
+            "tempC": 235
+        },
+        {
+            "tS": 780,
+            "tempC": 235
+        },
+        {
+            "tS": 840,
+            "tempC": 220
+        },
+        {
+            "tS": 960,
+            "tempC": 220
+        }
+    ],
+    "events": [
+        {
+            "tS": 0,
+            "label": "Charge",
+            "instruction": "Beans in. Temp set to 150C for drying.",
+            "requireAck": true
+        },
+        {
+            "tS": 300,
+            "label": "End Drying",
+            "instruction": "Increase temp to 235C for Maillard/Ramp.",
+            "requireAck": false
+        },
+        {
+            "tS": 750,
+            "label": "Watch for 1C",
+            "instruction": "First crack approaching. Listen carefully.",
+            "requireAck": false
+        },
+        {
+            "tS": 840,
+            "label": "Development",
+            "instruction": "Lower to 220C to extend development without burning.",
+            "requireAck": true
+        },
+        {
+            "tS": 960,
+            "label": "Drop / Cool",
+            "instruction": "Roast finished. Start cooling cycle.",
+            "requireAck": true
+        }
+    ]
+}

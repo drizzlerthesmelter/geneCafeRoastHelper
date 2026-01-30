@@ -1,0 +1,83 @@
+{
+  "name": "El Salvador Apaneca Santa Elena Pacamara Honey 250g — Medium+ (clean points)",
+  "author": "Gene Cafe Roast Profilist",
+  "description": "Medium+ (Full City+ range) for 250g Pacamara Honey from El Salvador (Apaneca-Ilamatepec, 1850m). Aim: caramel/milk-chocolate sweetness + almond depth with a small cherry/fruity edge.\n\nGene Cafe notes:\n- Preheat empty to 205°C until stable.\n- External fast cooling after DROP.\n\nTiming formats in events:\n- Elapsed mm:ss\n- Gene-decimal minutes (min + sec/60, rounded to 0.1)\n- Remaining time on Gene display (from 14:00)\n\nTargets:\n- Drying end ~04:30–05:00 (yellowing)\n- 1C goal window ~10:00–10:45\n- Development goal ~03:00–03:30 after 1C start (≈22–26% dev ratio)\n- Drop at first signs of 2C (faster ticking) or just before for cleaner cup.",
+  "beanInfo": {
+    "origin": "El Salvador — Apaneca Ilamatepec (Santa Elena / Ilamatepec terroir); Producer: Fernando Lima",
+    "process": "Honey (drying beds)",
+    "cropYear": "2023/2024",
+    "targetRoastLevel": "Medium+ (Full City+)"
+  },
+  "points": [
+    {
+      "tS": 0,
+      "tempC": 165
+    },
+    {
+      "tS": 270,
+      "tempC": 165
+    },
+    {
+      "tS": 300,
+      "tempC": 235
+    },
+    {
+      "tS": 570,
+      "tempC": 235
+    },
+    {
+      "tS": 585,
+      "tempC": 242
+    },
+    {
+      "tS": 645,
+      "tempC": 242
+    },
+    {
+      "tS": 660,
+      "tempC": 228
+    },
+    {
+      "tS": 840,
+      "tempC": 228
+    }
+  ],
+  "events": [
+    {
+      "tS": 0,
+      "label": "Charge / Start (Drying)",
+      "instruction": "Preheat empty to 205°C until stable.\nLoad 250g. Set 14:00 total. Set 165°C and press Start.\nElapsed 00:00 (0.0) | Remaining 14:00 (14.0)",
+      "requireAck": true
+    },
+    {
+      "tS": 270,
+      "label": "End Drying → 235°C",
+      "instruction": "Target: clear yellowing. Now increase to 235°C for Maillard.\nElapsed 04:30 (4.5) | Remaining 09:30 (9.5)",
+      "requireAck": true
+    },
+    {
+      "tS": 540,
+      "label": "Watch for 1C soon",
+      "instruction": "Start listening closely for first crack (distinct snaps). Expect approach in the next 1–2 minutes.\nElapsed 09:00 (9.0) | Remaining 05:00 (5.0)",
+      "requireAck": false
+    },
+    {
+      "tS": 585,
+      "label": "Push to 242°C (help 1C)",
+      "instruction": "If 1C hasn't started, this short push helps it arrive cleanly. If 1C is already rolling hard, you can skip this and go straight to development control.\nElapsed 09:45 (9.8) | Remaining 04:15 (4.2)",
+      "requireAck": true
+    },
+    {
+      "tS": 660,
+      "label": "Development Control → 228°C",
+      "instruction": "Set 228°C to manage development toward Medium+ without scorching.\nAim to DROP at first signs of 2C (faster ticking) or just before.\nElapsed 11:00 (11.0) | Remaining 03:00 (3.0)",
+      "requireAck": true
+    },
+    {
+      "tS": 840,
+      "label": "DROP / Cool",
+      "instruction": "Drop now. Eject and cool externally fast (fan).\n\nNext roast tweaks:\n- Too dark/smoky: drop 15–30s earlier OR make dev setpoint 225–226°C.\n- Too light/peanutty: extend 15–30s OR hold 242°C for +15–30s before stepping down.\n- Baked/flat: shorten drying hold by 30s or raise Maillard setpoint to 238°C.\nElapsed 14:00 (14.0) | Remaining 00:00 (0.0)",
+      "requireAck": true
+    }
+  ]
+}

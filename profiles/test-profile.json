@@ -1,0 +1,35 @@
+{
+  "name": "Test Profile",
+  "points": [
+    {
+      "tS": 0,
+      "tempC": 200
+    },
+    {
+      "tS": 180,
+      "tempC": 210
+    },
+    {
+      "tS": 420,
+      "tempC": 225
+    },
+    {
+      "tS": 660,
+      "tempC": 228
+    }
+  ],
+  "events": [
+    {
+      "tS": 360,
+      "label": "Maillard start",
+      "instruction": "Start ramping gently.",
+      "requireAck": true
+    },
+    {
+      "tS": 600,
+      "label": "Prep for Drop",
+      "instruction": "Get ready to end roast.",
+      "requireAck": true
+    }
+  ]
+}
