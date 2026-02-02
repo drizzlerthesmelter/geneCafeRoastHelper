@@ -3,17 +3,19 @@ export class RoastGraph {
         this.svg = svgEl;
         this.padding = { top: 20, right: 30, bottom: 30, left: 40 };
         this.profile = null;
+        this.actualPoints = [];
 
         // Auto-resize
         new ResizeObserver(() => {
-            if (this.profile) this.render(this.profile);
+            if (this.profile) this.render(this.profile, this.actualPoints);
         }).observe(this.svg);
 
         this.markerEls = {};
     }
 
-    render(profile) {
+    render(profile, actualPoints = this.actualPoints) {
         this.profile = profile;
+        this.actualPoints = actualPoints || [];
         const rect = this.svg.getBoundingClientRect();
         const W = rect.width;
         const H = rect.height;
@@ -26,11 +28,16 @@ export class RoastGraph {
 
         // 1. Determine Scales
         // Max time: Profile end + 2 mins buffer (120s)
-        const maxT = profile.points[profile.points.length - 1].tS + 120;
+        const profileMaxT = profile.points[profile.points.length - 1].tS + 120;
+        const actualMaxT = this.actualPoints.length ? Math.max(...this.actualPoints.map(p => p.tS)) : 0;
+        const maxT = Math.max(profileMaxT, actualMaxT);
         const minT = 0;
 
         // Max Temp: Find max + buffer
         const allTemps = profile.points.map(p => p.tempC);
+        if (this.actualPoints.length) {
+            for (const p of this.actualPoints) allTemps.push(p.tempC);
+        }
         const minC = Math.min(...allTemps, 100); // Floor at 100 if profile is high
         const maxC = Math.max(...allTemps) + 10;
 
@@ -70,6 +77,39 @@ export class RoastGraph {
             "vector-effect": "non-scaling-stroke",
             filter: "drop-shadow(0 4px 6px rgba(193, 41, 70, 0.3))" // Glow
         });
+
+        // 3b. Draw Actual Curve if available
+        if (this.actualPoints.length > 1) {
+            const actualPath = this.actualPoints.map((p, i) => {
+                return `${i === 0 ? 'M' : 'L'} ${mapX(p.tS)} ${mapY(p.tempC)}`;
+            }).join(" ");
+
+            this.addEl("path", {
+                d: actualPath,
+                fill: "none",
+                stroke: "var(--gene-blue)",
+                "stroke-width": "2",
+                "stroke-dasharray": "4 3",
+                "vector-effect": "non-scaling-stroke"
+            });
+
+            this.actualPoints.forEach((p) => {
+                this.addEl("circle", {
+                    cx: mapX(p.tS),
+                    cy: mapY(p.tempC),
+                    r: 2.5,
+                    fill: "var(--gene-blue)"
+                });
+            });
+        } else if (this.actualPoints.length === 1) {
+            const p = this.actualPoints[0];
+            this.addEl("circle", {
+                cx: mapX(p.tS),
+                cy: mapY(p.tempC),
+                r: 2.5,
+                fill: "var(--gene-blue)"
+            });
+        }
 
         // 4. Draw Events via circles
         (profile.events || []).forEach(ev => {

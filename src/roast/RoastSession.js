@@ -7,12 +7,13 @@ export class RoastSession {
     this.profile = profile;
     this.timer = new Timer();
     this.cal = defaultCalibration();
-    this.correction = { val: 0, startS: 0 };
+    this.correction = { val: 0 };
     this._fired = new Set();
     this.markers = {};
+    this.actualReadings = [];
   }
 
-  start() { this._fired.clear(); this.timer.start(); }
+  start() { this._fired.clear(); this.actualReadings = []; this.timer.start(); }
   pause() { this.timer.pause(); }
   resume() { this.timer.resume(); }
   stop() { this.timer.stop(); }
@@ -28,27 +29,28 @@ export class RoastSession {
     return plannedTempAt(this.profile.points, this.effectiveTimeS());
   }
 
-  // New Logic: Store the Correction needed.
-  // We want to apply correction that DECAYS over time (e.g. 3 mins).
+  // Calibration: proportional correction (no decay).
+  // We compute the error between planned and actual display temp,
+  // apply a proportional gain, then clamp the correction.
   setCorrection(actualC) {
     const planned = this.plannedTempNowC();
-    this.correction.val = planned - actualC; // Initial Error
-    this.correction.startS = this.elapsedS();
+    const error = planned - actualC;
+    const KP = 0.6;
+    const MAX_CORR = 20; // max correction applied from calibration
+    const raw = error * KP;
+    this.correction.val = Math.max(-MAX_CORR, Math.min(MAX_CORR, raw));
   }
 
   recommendedTempC({ stepC = 1 } = {}) {
     const planned = this.plannedTempNowC();
 
-    // Decay Logic
-    const DURATION_S = 180; // 3 minutes decay
-    const elapsedSince = this.elapsedS() - (this.correction.startS || 0);
-    const factor = Math.max(0, 1 - (elapsedSince / DURATION_S));
-
-    const adjustment = this.correction.val * factor;
-
-    // Apply adjusted correction
-    const adjustedTemp = planned + adjustment;
+    // Apply calibrated correction (no decay)
+    const adjustedTemp = planned + this.correction.val;
     return Math.round(adjustedTemp / stepC) * stepC;
+  }
+
+  resetCorrection() {
+    this.correction.val = 0;
   }
 
   nextEvent() {
@@ -74,5 +76,15 @@ export class RoastSession {
     if (type === "yellow") this.markers.yellowAtS = tS;
     if (type === "firstCrack") this.markers.firstCrackAtS = tS;
     if (type === "drop") this.markers.dropAtS = tS;
+  }
+
+  addActualReading(tempC) {
+    const tS = Math.round(this.elapsedS());
+    const last = this.actualReadings[this.actualReadings.length - 1];
+    if (last && last.tS === tS) {
+      last.tempC = tempC;
+      return;
+    }
+    this.actualReadings.push({ tS, tempC });
   }
 }

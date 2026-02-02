@@ -6,7 +6,11 @@ function readAll() {
 }
 
 function writeAll(arr) {
-  localStorage.setItem(KEY, JSON.stringify(arr));
+  try {
+    localStorage.setItem(KEY, JSON.stringify(arr));
+  } catch (err) {
+    throw new Error("Storage unavailable. Check privacy settings or run via http://");
+  }
 }
 
 export function saveRoast(record) {
@@ -17,4 +21,13 @@ export function saveRoast(record) {
 
 export function listRoasts() {
   return readAll();
+}
+
+export function deleteRoast(id) {
+  const all = readAll().filter((r) => r.id !== id);
+  writeAll(all);
+}
+
+export function clearRoasts() {
+  writeAll([]);
 }

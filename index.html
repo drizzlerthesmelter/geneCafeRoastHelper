@@ -15,11 +15,31 @@
         <h1>Gene Cafe Roast Helper</h1>
       </header>
 
-      <!-- Profile Selection Panel -->
+      <!-- Profile Library Panel -->
       <div class="panel">
-        <div class="file-upload-wrapper">
+        <div class="panel-row">
+          <div style="font-size:14px; font-weight:700;">Profile Library</div>
+          <span id="profileCount" class="status-pill">0 saved</span>
+        </div>
+        <div class="file-upload-wrapper mt-4">
           <input id="profileFile" type="file" accept="application/json" />
           <span id="profileStatus" class="status-pill">No profile loaded</span>
+        </div>
+        <div class="mt-4">
+          <span id="storageStatus" class="status-pill">Storage: checking…</span>
+        </div>
+
+        <div class="mt-4" style="display:flex; gap:10px; align-items:center;">
+          <select id="profileSelect" class="select w-full">
+            <option value="">No profiles yet</option>
+          </select>
+          <button id="loadProfileBtn" class="primary" style="min-width:120px;">Load</button>
+        </div>
+
+        <div class="mt-4" style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="saveProfileBtn">Save Loaded</button>
+          <button id="exportProfileBtn">Export</button>
+          <button id="deleteProfileBtn" class="danger">Delete</button>
         </div>
       </div>
 
@@ -85,14 +105,48 @@
           <div style="font-size:14px; font-weight:600; color: var(--primary);">
             <span id="calIndicator">CAL: 0°C</span>
           </div>
-          <button id="calBtn" disabled style="padding: 6px 12px; font-size:13px; min-width:auto;">Calibrate</button>
+          <div style="display:flex; gap:8px;">
+            <button id="calBtn" disabled style="padding: 6px 12px; font-size:13px; min-width:auto;">Calibrate</button>
+            <button id="resetCalBtn" disabled style="padding: 6px 12px; font-size:13px; min-width:auto;">Reset</button>
+          </div>
         </div>
+
+        <div class="mt-4 panel-row">
+          <label style="flex-direction:row; align-items:center; gap:8px;">
+            <input type="checkbox" id="audioToggle" />
+            Audio alerts
+          </label>
+          <span id="audioStatus" class="status-pill">Audio: off</span>
+          <button id="testAudioBtn" style="padding: 8px 12px; font-size:13px;">Test</button>
+        </div>
+      </div>
+
+      <!-- Post-Roast Analytics Panel -->
+      <div class="panel">
+        <div class="panel-row" style="margin-bottom:12px;">
+          <div style="font-size:14px; font-weight:700;">Post-Roast Analytics</div>
+          <button id="clearAnalyticsBtn" class="danger" style="padding: 6px 12px; font-size:13px;">Clear History</button>
+        </div>
+        <div id="analyticsSummary" class="output-box"></div>
+        <div id="analyticsList" class="mt-4"></div>
       </div>
     </div> <!-- End Sidebar -->
 
     <!-- Main Graph Area -->
-    <div class="main-graph panel">
-      <svg id="roastChart" width="100%" height="100%" preserveAspectRatio="none"></svg>
+    <div class="main-column">
+      <div class="main-graph panel">
+        <svg id="roastChart" width="100%" height="100%" preserveAspectRatio="none"></svg>
+      </div>
+      <div class="panel actual-panel">
+        <div style="font-size:14px; font-weight:700; margin-bottom:10px;">Actual Temp Log</div>
+        <div class="actual-row">
+          <label style="margin:0;">Actual temp (°C)
+            <input id="actualInlineInput" type="number" inputmode="numeric" placeholder="e.g. 215" />
+          </label>
+          <button id="saveActualInlineBtn" class="primary">Log</button>
+        </div>
+        <div id="actualInlineStatus" class="status-pill">Log every 2 minutes while roasting</div>
+      </div>
     </div>
   </div>
 

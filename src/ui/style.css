@@ -81,16 +81,14 @@ p {
     gap: 24px;
   }
 
-  .main-graph {
-    position: sticky;
-    /* Keep it in view if scrolling */
-    top: 24px;
-    height: 350px;
-    /* Fixed smaller height */
+  .main-column {
     width: 100%;
     max-width: 900px;
-    /* Consolidate width */
     align-self: center;
+  }
+
+  .main-graph {
+    height: 350px;
   }
 }
 
@@ -105,6 +103,32 @@ p {
   flex-direction: column;
   min-height: 400px;
   /* Mobile height */
+}
+
+.main-graph svg {
+  width: 100%;
+  height: 100%;
+}
+
+.main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.actual-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.actual-row input[type="number"] {
+  width: 120px;
+}
+
+.status-pill.warn {
+  background: rgba(245, 158, 11, 0.15);
+  color: #92400e;
 }
 
 /* Header */
@@ -347,6 +371,22 @@ input[type="number"]:focus {
   background: white;
 }
 
+select {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #cbd5e1;
+  color: var(--text-main);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.select:focus {
+  outline: 2px solid var(--primary);
+  border-color: transparent;
+  background: white;
+}
+
 label {
   font-size: 14px;
   color: var(--text-muted);
@@ -398,6 +438,52 @@ dialog::backdrop {
   border: 1px solid #e2e8f0;
   color: #334155;
   font-size: 13px;
+}
+
+.analytics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.analytics-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
+}
+
+.analytics-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.mini-btn {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: white;
+}
+
+.mini-btn.danger {
+  background: var(--danger);
+  color: white;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 /* Utility */
