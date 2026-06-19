@@ -25,8 +25,39 @@ export function parseProfile(raw) {
     return { tS, label, instruction, requireAck };
   }).sort((a, b) => a.tS - b.tS);
 
+  const rawBeanInfo = raw.beanInfo && typeof raw.beanInfo === "object" ? raw.beanInfo : null;
+  const beanBatchSizeG = Number(rawBeanInfo?.batchSizeG);
+  const beanInfo = rawBeanInfo
+    ? {
+        ...rawBeanInfo,
+        origin: rawBeanInfo.origin ? String(rawBeanInfo.origin) : "",
+        process: rawBeanInfo.process ? String(rawBeanInfo.process) : "",
+        cropYear: rawBeanInfo.cropYear ? String(rawBeanInfo.cropYear) : "",
+        targetRoastLevel: rawBeanInfo.targetRoastLevel ? String(rawBeanInfo.targetRoastLevel) : "",
+        ...(Number.isFinite(beanBatchSizeG) ? { batchSizeG: beanBatchSizeG } : {})
+      }
+    : undefined;
+
+  const rawRoasterSettings = raw.roasterSettings && typeof raw.roasterSettings === "object" ? raw.roasterSettings : null;
+  const preheatTempC = Number(rawRoasterSettings?.preheatTempC);
+  const geneStartTimeMin = Number(rawRoasterSettings?.geneStartTimeMin);
+  const roasterBatchSizeG = Number(rawRoasterSettings?.batchSizeG);
+  const roasterSettings = rawRoasterSettings
+    ? {
+        ...rawRoasterSettings,
+        ...(Number.isFinite(preheatTempC) ? { preheatTempC } : {}),
+        ...(Number.isFinite(geneStartTimeMin) ? { geneStartTimeMin } : {}),
+        ...(Number.isFinite(roasterBatchSizeG) ? { batchSizeG: roasterBatchSizeG } : {})
+      }
+    : undefined;
+
   return {
+    ...raw,
     name: raw.name.trim(),
+    author: raw.author ? String(raw.author) : "",
+    description: raw.description ? String(raw.description) : "",
+    beanInfo,
+    roasterSettings,
     points: normPoints,
     events: normEvents
   };

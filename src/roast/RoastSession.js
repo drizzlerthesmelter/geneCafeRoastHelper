@@ -13,7 +13,12 @@ export class RoastSession {
     this.actualReadings = [];
   }
 
-  start() { this._fired.clear(); this.actualReadings = []; this.timer.start(); }
+  start() {
+    this._fired.clear();
+    this.markers = {};
+    this.actualReadings = [];
+    this.timer.start();
+  }
   pause() { this.timer.pause(); }
   resume() { this.timer.resume(); }
   stop() { this.timer.stop(); }

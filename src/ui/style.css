@@ -56,46 +56,67 @@ p {
 
 .app-container {
   width: 100%;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  max-width: 1400px;
-  /* Allow wider for graph */
-}
-
-/* Desktop Grid Layout */
-/* Desktop Grid Layout */
-@media (min-width: 900px) {
-  .app-container {
-    display: grid;
-    grid-template-columns: 600px 1fr;
-    /* Wider sidebar */
-    /* Remove fixed height/rows so it doesn't break UI */
-    align-items: center;
-    gap: 40px;
-    /* More breathing room */
-  }
-
-  .sidebar {
-    gap: 24px;
-  }
-
-  .main-column {
-    width: 100%;
-    max-width: 900px;
-    align-self: center;
-  }
-
-  .main-graph {
-    height: 350px;
-  }
-}
-
-.sidebar {
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  max-width: 1440px;
+}
+
+@media (min-width: 900px) {
+  .app-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 28px;
+    padding: 24px 28px 32px;
+  }
+
+  .main-graph {
+    height: 360px;
+    grid-column: 2;
+    grid-row: 3;
+  }
+
+  .app-header {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    margin-bottom: 0;
+  }
+
+  .profile-panel {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .stats-panel {
+    grid-column: 1;
+    grid-row: 3;
+  }
+
+  .controls-panel {
+    grid-column: 1;
+    grid-row: 4;
+  }
+
+  .actual-panel {
+    grid-column: 2;
+    grid-row: 4;
+  }
+
+  .analytics-panel {
+    grid-column: 1 / -1;
+    grid-row: 5;
+  }
+
+  .profile-panel {
+    padding: 18px 20px;
+  }
+
+  .profile-panel-grid {
+    grid-template-columns: minmax(240px, 1.05fr) minmax(220px, 0.95fr) minmax(320px, 1.35fr);
+    align-items: start;
+  }
 }
 
 .main-graph {
@@ -110,20 +131,22 @@ p {
   height: 100%;
 }
 
-.main-column {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
 .actual-row {
   display: flex;
   gap: 10px;
   align-items: flex-end;
 }
 
+.actual-row label {
+  flex: 1;
+}
+
 .actual-row input[type="number"] {
-  width: 120px;
+  width: 100%;
+}
+
+.actual-row button {
+  min-width: 110px;
 }
 
 .status-pill.warn {
@@ -152,11 +175,16 @@ header h1 {
 .panel {
   background: var(--bg-panel);
   border-radius: var(--radius-lg);
-  padding: 24px;
+  padding: 20px;
   box-shadow: var(--shadow-md);
   border: 1px solid rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+.panel-title {
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .panel-row {
@@ -165,6 +193,65 @@ header h1 {
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
+}
+
+.profile-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.profile-panel-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.profile-panel .file-upload-wrapper {
+  align-items: flex-start;
+}
+
+.profile-panel .status-pill {
+  align-self: flex-start;
+}
+
+.profile-block,
+.profile-actions {
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.profile-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.profile-block-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.profile-select-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.profile-select-row button {
+  min-width: 104px;
+}
+
+.profile-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  align-content: start;
 }
 
 /* File Input Wrapper */
@@ -212,7 +299,7 @@ input[type="file"]::file-selector-button:hover {
 .display-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 14px;
   text-align: center;
 }
 
@@ -272,8 +359,8 @@ input[type="file"]::file-selector-button:hover {
 }
 
 .next-event {
-  margin-top: 20px;
-  padding-top: 20px;
+  margin-top: 16px;
+  padding-top: 16px;
   border-top: 1px solid var(--border);
   text-align: center;
   color: var(--text-muted);
@@ -290,6 +377,29 @@ input[type="file"]::file-selector-button:hover {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+}
+
+.stats-panel,
+.controls-panel,
+.actual-panel,
+.analytics-panel {
+  height: 100%;
+}
+
+.stats-panel,
+.controls-panel,
+.actual-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+.controls-panel,
+.actual-panel {
+  gap: 14px;
+}
+
+.actual-panel {
+  justify-content: space-between;
 }
 
 button {
@@ -344,7 +454,7 @@ button.success {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .sub-controls button {
@@ -365,10 +475,34 @@ input[type="number"] {
   width: 100%;
 }
 
+input[type="text"],
+textarea {
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #cbd5e1;
+  color: var(--text-main);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 16px;
+  width: 100%;
+  font-family: inherit;
+}
+
 input[type="number"]:focus {
   outline: 2px solid var(--primary);
   border-color: transparent;
   background: white;
+}
+
+input[type="text"]:focus,
+textarea:focus {
+  outline: 2px solid var(--primary);
+  border-color: transparent;
+  background: white;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 96px;
 }
 
 select {
@@ -408,6 +542,10 @@ dialog {
   backdrop-filter: blur(10px);
 }
 
+#builderModal {
+  max-width: 860px;
+}
+
 dialog::backdrop {
   background: rgba(15, 23, 42, 0.4);
   /* Nice dark backdrop */
@@ -421,11 +559,19 @@ dialog::backdrop {
   color: var(--text-main);
 }
 
+.modal-hint {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.45;
+  margin-bottom: 16px;
+}
+
 .modal-footer {
   margin-top: 24px;
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .output-box {
@@ -476,6 +622,11 @@ dialog::backdrop {
   color: white;
 }
 
+.mini-btn.primary {
+  background: var(--primary);
+  color: white;
+}
+
 .badge {
   padding: 2px 8px;
   border-radius: 999px;
@@ -484,6 +635,11 @@ dialog::backdrop {
   font-weight: 600;
   font-size: 11px;
   white-space: nowrap;
+}
+
+.badge.pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #92400e;
 }
 
 /* Utility */
@@ -523,6 +679,50 @@ dialog::backdrop {
   gap: 12px;
   z-index: 1000;
   pointer-events: none;
+}
+
+.builder-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.builder-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.builder-warnings {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: #92400e;
+}
+
+@media (max-width: 720px) {
+  .builder-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-select-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .profile-select-row button {
+    width: 100%;
+  }
+
+  .actual-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actual-row button {
+    width: 100%;
+  }
 }
 
 .toast {

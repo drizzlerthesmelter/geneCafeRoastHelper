@@ -19,6 +19,19 @@ export function saveRoast(record) {
   writeAll(all);
 }
 
+export function updateRoast(id, updater) {
+  const all = readAll();
+  const index = all.findIndex((r) => r.id === id);
+  if (index < 0) return null;
+
+  const next = typeof updater === "function"
+    ? updater(all[index])
+    : { ...all[index], ...updater };
+  all[index] = next;
+  writeAll(all);
+  return next;
+}
+
 export function listRoasts() {
   return readAll();
 }

@@ -7,7 +7,9 @@ This guide explains the fields used in `.json` profile files for the Gene Cafe R
 - **`author`** (string, optional): The creator of the profile.
 - **`description`** (string, optional): Notes about what this profile is designed for.
 - **`beanInfo`** (object, optional): Metadata about the coffee.
-  - `origin`, `process`, `cropYear`, `targetRoastLevel`.
+  - `origin`, `process`, `cropYear`, `targetRoastLevel`, `batchSizeG`.
+- **`roasterSettings`** (object, optional): Helper metadata for the roaster.
+  - `preheatTempC`, `geneStartTimeMin`, `batchSizeG`.
 
 ## `points`
 An array of temperature setpoints defining the curve. The app interpolates between these points.

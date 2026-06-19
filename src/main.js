@@ -1,9 +1,10 @@
 import { parseProfile } from "./profile/parseProfile.js";
+import { buildGuidedProfile, createDraft, guidedProfileOptions, inferDraftFromProfile } from "./profile/profileBuilder.js";
 import { RoastSession } from "./roast/RoastSession.js";
-import { formatMMSS, toGeneMinutes } from "./ui/timeFormat.js";
+import { formatMMSS } from "./ui/timeFormat.js";
 import { developmentMetrics, weightLossPct } from "./domain/metrics.js";
 import { feedbackText } from "./domain/feedback.js";
-import { clearRoasts, deleteRoast, listRoasts, saveRoast } from "./storage/roastStore.js";
+import { clearRoasts, deleteRoast, listRoasts, saveRoast, updateRoast } from "./storage/roastStore.js";
 import { deleteProfile, getProfile, listProfiles, saveProfile } from "./storage/profileStore.js";
 import { showToast } from "./ui/toast.js";
 import { RoastGraph } from "./ui/Graph.js";
@@ -18,8 +19,11 @@ const profileCount = el("profileCount");
 const saveProfileBtn = el("saveProfileBtn");
 const loadProfileBtn = el("loadProfileBtn");
 const exportProfileBtn = el("exportProfileBtn");
+const writeProfileBtn = el("writeProfileBtn");
 const deleteProfileBtn = el("deleteProfileBtn");
 const storageStatus = el("storageStatus");
+const openBuilderBtn = el("openBuilderBtn");
+const editProfileBtn = el("editProfileBtn");
 
 const setTempEl = el("setTemp");
 const profileTempEl = el("profileTemp");
@@ -59,11 +63,40 @@ const closeCalBtn = el("closeCal");
 
 // Summary modal
 const summaryModal = el("summaryModal");
+const summaryTitle = el("summaryTitle");
+const summaryHint = el("summaryHint");
 const greenWeight = el("greenWeight");
 const roastedWeight = el("roastedWeight");
 const summaryOutput = el("summaryOutput");
 const saveSummaryBtn = el("saveSummary");
 const closeSummaryBtn = el("closeSummary");
+
+// Guided builder modal
+const builderModal = el("builderModal");
+const builderName = el("builderName");
+const builderCountry = el("builderCountry");
+const builderRegion = el("builderRegion");
+const builderProcess = el("builderProcess");
+const builderRoastLevel = el("builderRoastLevel");
+const builderCropYear = el("builderCropYear");
+const builderBatchSize = el("builderBatchSize");
+const builderChargeTemp = el("builderChargeTemp");
+const builderDryingMin = el("builderDryingMin");
+const builderMaillardTemp = el("builderMaillardTemp");
+const builderMaillardMin = el("builderMaillardMin");
+const builderPeakTemp = el("builderPeakTemp");
+const builderDevelopmentTemp = el("builderDevelopmentTemp");
+const builderDevelopmentPct = el("builderDevelopmentPct");
+const builderNotes = el("builderNotes");
+const builderStatus = el("builderStatus");
+const builderSummary = el("builderSummary");
+const builderWarnings = el("builderWarnings");
+const builderResetBtn = el("builderResetBtn");
+const builderCancelBtn = el("builderCancel");
+const builderPreviewBtn = el("builderPreviewBtn");
+const builderSaveBtn = el("builderSaveBtn");
+const builderExportBtn = el("builderExportBtn");
+const builderWriteBtn = el("builderWriteBtn");
 
 // Start modal
 const startModal = el("startModal");
@@ -82,6 +115,10 @@ let audioCtx = null;
 let approachFired = new Set();
 let nextActualPromptS = null;
 let actualPromptDue = false;
+let builderAutoName = "";
+let builderResult = null;
+let builderDirectoryHandle = null;
+let summaryContext = null;
 
 const AUDIO_KEY = "gene_audio_enabled_v1";
 const APPROACH_EVENT_S = 30;
@@ -141,16 +178,7 @@ profileFile.addEventListener("change", async (e) => {
     const text = await f.text();
     const raw = JSON.parse(text);
     const profile = parseProfile(raw);
-
-    session = new RoastSession(profile);
-    profileStatus.textContent = `Loaded: ${profile.name}`;
-    enableControls(true);
-
-    // Render Graph
-    graph.render(profile, session.actualReadings);
-
-    renderIdle();
-    renderProfileLibrary();
+    loadProfile(profile, `Loaded: ${profile.name}`);
 
   } catch (err) {
     session = null;
@@ -159,6 +187,24 @@ profileFile.addEventListener("change", async (e) => {
     renderIdle();
   }
 });
+
+function setGeneStartTimeFromProfile(profile) {
+  const startMin = Number(profile?.roasterSettings?.geneStartTimeMin);
+  if (Number.isFinite(startMin) && startMin > 0) {
+    geneStartTimeEl.value = startMin.toFixed(1);
+  }
+}
+
+function loadProfile(profile, statusText = `Loaded: ${profile.name}`) {
+  session = new RoastSession(profile);
+  profileStatus.textContent = statusText;
+  enableControls(true);
+  resetRoastActionButtons();
+  setGeneStartTimeFromProfile(profile);
+  graph.render(profile, session.actualReadings);
+  renderIdle();
+  renderProfileLibrary();
+}
 
 function enableControls(enabled) {
   startBtn.disabled = !enabled;
@@ -171,6 +217,13 @@ function enableControls(enabled) {
   resetCalBtn.disabled = true;
   actualInlineInput.disabled = true;
   saveActualInlineBtn.disabled = true;
+}
+
+function resetRoastActionButtons() {
+  yellowBtn.textContent = "Mark Yellow";
+  yellowBtn.style.opacity = "";
+  fcBtn.textContent = "Mark 1C Start";
+  fcBtn.style.opacity = "";
 }
 
 function renderIdle() {
@@ -219,12 +272,7 @@ function loadProfileByName(name) {
   const record = getProfile(name);
   if (!record) return;
   const profile = parseProfile(record.profile);
-  session = new RoastSession(profile);
-  profileStatus.textContent = `Loaded: ${profile.name}`;
-  enableControls(true);
-  graph.render(profile, session.actualReadings);
-  renderIdle();
-  renderProfileLibrary();
+  loadProfile(profile, `Loaded: ${profile.name}`);
 }
 
 function downloadJson(filename, data) {
@@ -245,10 +293,214 @@ function safeFilename(input) {
     .toLowerCase();
 }
 
+function populateBuilderSelect(selectEl, options) {
+  selectEl.innerHTML = options.map((value) => `<option value="${value}">${value}</option>`).join("");
+}
+
+function buildBuilderSeed() {
+  return {
+    name: builderName.value.trim(),
+    country: builderCountry.value,
+    region: builderRegion.value.trim(),
+    process: builderProcess.value,
+    roastLevel: builderRoastLevel.value,
+    cropYear: builderCropYear.value.trim(),
+    batchSizeG: Number(builderBatchSize.value),
+    chargeTempC: Number(builderChargeTemp.value),
+    dryingMin: Number(builderDryingMin.value),
+    maillardTempC: Number(builderMaillardTemp.value),
+    maillardMin: Number(builderMaillardMin.value),
+    peakTempC: Number(builderPeakTemp.value),
+    developmentTempC: Number(builderDevelopmentTemp.value),
+    developmentPct: Number(builderDevelopmentPct.value),
+    notes: builderNotes.value.trim()
+  };
+}
+
+function refreshBuilderAutoName(force = false) {
+  const autoDraft = createDraft({
+    country: builderCountry.value,
+    region: builderRegion.value.trim(),
+    process: builderProcess.value,
+    roastLevel: builderRoastLevel.value,
+    batchSizeG: Number(builderBatchSize.value)
+  });
+  const currentName = builderName.value.trim();
+  if (force || !currentName || currentName === builderAutoName) {
+    builderName.value = autoDraft.name;
+  }
+  builderAutoName = autoDraft.name;
+}
+
+function applyBuilderDraft(draft) {
+  builderCountry.value = draft.country;
+  builderRegion.value = draft.region;
+  builderProcess.value = draft.process;
+  builderRoastLevel.value = draft.roastLevel;
+  builderCropYear.value = draft.cropYear;
+  builderBatchSize.value = draft.batchSizeG;
+  builderChargeTemp.value = draft.chargeTempC;
+  builderDryingMin.value = draft.dryingMin;
+  builderMaillardTemp.value = draft.maillardTempC;
+  builderMaillardMin.value = draft.maillardMin;
+  builderPeakTemp.value = draft.peakTempC;
+  builderDevelopmentTemp.value = draft.developmentTempC;
+  builderDevelopmentPct.value = draft.developmentPct;
+  builderNotes.value = draft.notes || "";
+  refreshBuilderAutoName(true);
+  builderName.value = draft.name || builderAutoName;
+}
+
+function resetBuilderToBaseline() {
+  const draft = createDraft({
+    country: builderCountry.value,
+    region: builderRegion.value.trim(),
+    process: builderProcess.value,
+    roastLevel: builderRoastLevel.value,
+    cropYear: builderCropYear.value.trim(),
+    batchSizeG: Number(builderBatchSize.value),
+    notes: builderNotes.value.trim()
+  });
+  applyBuilderDraft(draft);
+  renderBuilderPreview();
+}
+
+function renderBuilderPreview() {
+  builderResult = buildGuidedProfile(buildBuilderSeed());
+  builderSummary.textContent = builderResult.summaryLines.join("\n");
+
+  const warningLines = [];
+  if (builderResult.adjustments.length) {
+    warningLines.push(`Guardrails applied: ${builderResult.adjustments.join(" ")}`);
+  }
+  if (builderResult.warnings.length) {
+    warningLines.push(`Watchouts: ${builderResult.warnings.join(" ")}`);
+  }
+  if (!warningLines.length) {
+    warningLines.push("Profile stays inside conservative first-pass bounds.");
+  }
+
+  builderWarnings.textContent = warningLines.join("\n\n");
+  builderStatus.textContent = `Gene start ${builderResult.profile.roasterSettings.geneStartTimeMin.toFixed(1)} min`;
+  return builderResult;
+}
+
+function openGuidedBuilder(draft = createDraft()) {
+  applyBuilderDraft(draft);
+  renderBuilderPreview();
+  builderModal.showModal();
+  setTimeout(() => builderName.focus(), 50);
+}
+
+function getProfileForEditing() {
+  if (session?.profile) return session.profile;
+  const selectedName = profileSelect.value;
+  if (!selectedName) return null;
+  return getProfile(selectedName)?.profile || null;
+}
+
+async function writeProfileJsonFile(profile) {
+  if (!window.showDirectoryPicker) {
+    throw new Error("Direct file writing is not supported in this browser. Use Export instead.");
+  }
+
+  if (!builderDirectoryHandle) {
+    builderDirectoryHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+  }
+
+  if (typeof builderDirectoryHandle.requestPermission === "function") {
+    const permission = await builderDirectoryHandle.requestPermission({ mode: "readwrite" });
+    if (permission !== "granted") throw new Error("Folder permission was not granted.");
+  }
+
+  const filename = `${safeFilename(profile.name)}.json`;
+  const fileHandle = await builderDirectoryHandle.getFileHandle(filename, { create: true });
+  const writable = await fileHandle.createWritable();
+  await writable.write(JSON.stringify(profile, null, 2));
+  await writable.close();
+  return filename;
+}
+
+function positiveNumberOrNull(value) {
+  const num = Number(value);
+  return Number.isFinite(num) && num > 0 ? num : null;
+}
+
+function defaultGreenWeightG(profile) {
+  return positiveNumberOrNull(profile?.beanInfo?.batchSizeG ?? profile?.roasterSettings?.batchSizeG);
+}
+
+function actualMetricsForSession(roastSession) {
+  const actualReadings = Array.isArray(roastSession.actualReadings) ? roastSession.actualReadings : [];
+  const timeShiftS = roastSession.cal?.timeShiftS || 0;
+  const actualDeltas = actualReadings.map((r) => {
+    const planned = plannedTempAt(roastSession.profile.points, Math.max(0, r.tS - timeShiftS));
+    return r.tempC - planned;
+  });
+
+  if (!actualDeltas.length) return null;
+
+  return {
+    avgDeltaC: actualDeltas.reduce((a, b) => a + b, 0) / actualDeltas.length,
+    maxDeltaC: Math.max(...actualDeltas),
+    minDeltaC: Math.min(...actualDeltas)
+  };
+}
+
+function buildRoastRecordFromSession(roastSession, { status = "complete", greenWeightG = null, roastedWeightG = null } = {}) {
+  const greenG = positiveNumberOrNull(greenWeightG);
+  const roastedG = positiveNumberOrNull(roastedWeightG);
+  const fc = roastSession.markers.firstCrackAtS;
+  const drop = roastSession.markers.dropAtS;
+  const dev = developmentMetrics(fc, drop);
+  const lossPct = weightLossPct(greenG, roastedG);
+  const actualReadings = Array.isArray(roastSession.actualReadings) ? roastSession.actualReadings : [];
+  const feedback = feedbackText({ devPct: dev?.devPct ?? null, lossPct, hasDev: !!dev });
+
+  return {
+    id: crypto.randomUUID(),
+    createdAtISO: new Date().toISOString(),
+    completedAtISO: status === "complete" ? new Date().toISOString() : null,
+    status,
+    profileName: roastSession.profile.name,
+    greenWeightG: greenG,
+    roastedWeightG: roastedG,
+    markers: { ...roastSession.markers },
+    calibration: { ...roastSession.cal },
+    actualReadings,
+    actualMetrics: actualMetricsForSession(roastSession),
+    metrics: {
+      devS: dev?.devS ?? null,
+      devPct: dev?.devPct ?? null,
+      weightLossPct: lossPct
+    },
+    feedback
+  };
+}
+
+function finalizeRoastRecord(record, greenG, roastedG) {
+  const lossPct = weightLossPct(greenG, roastedG);
+  const hasDev = Number.isFinite(record.metrics?.devPct);
+
+  return {
+    ...record,
+    status: "complete",
+    completedAtISO: new Date().toISOString(),
+    greenWeightG: greenG,
+    roastedWeightG: roastedG,
+    metrics: {
+      ...(record.metrics || {}),
+      weightLossPct: lossPct
+    },
+    feedback: feedbackText({ devPct: record.metrics?.devPct ?? null, lossPct, hasDev })
+  };
+}
+
 function renderAnalytics() {
   if (!analyticsSummary || !analyticsList) return;
   const roasts = listRoasts();
   const count = roasts.length;
+  const pendingCount = roasts.filter((r) => r.status === "pendingWeight").length;
   const devVals = roasts.map((r) => r.metrics?.devPct).filter((v) => Number.isFinite(v));
   const lossVals = roasts.map((r) => r.metrics?.weightLossPct).filter((v) => Number.isFinite(v));
   const actualDeltaVals = roasts.map((r) => r.actualMetrics?.avgDeltaC).filter((v) => Number.isFinite(v));
@@ -263,6 +515,7 @@ function renderAnalytics() {
 
   const lines = [];
   lines.push(`Total roasts: ${count}`);
+  lines.push(`Pending final weight: ${pendingCount}`);
   lines.push(`Avg dev %: ${avgDev != null ? avgDev.toFixed(1) + "%" : "—"}`);
   lines.push(`Avg weight loss: ${avgLoss != null ? avgLoss.toFixed(1) + "%" : "—"}`);
   lines.push(`Avg actual Δ: ${avgActualDelta != null ? `${avgActualDelta.toFixed(1)}°C` : "—"}`);
@@ -274,25 +527,35 @@ function renderAnalytics() {
     return;
   }
 
-  const items = roasts.slice(0, 6).map((r) => {
+  const pendingRoasts = roasts.filter((r) => r.status === "pendingWeight");
+  const completedRoasts = roasts.filter((r) => r.status !== "pendingWeight");
+  const displayRoasts = [...pendingRoasts, ...completedRoasts].slice(0, 6);
+
+  const items = displayRoasts.map((r) => {
+    const pending = r.status === "pendingWeight";
     const date = r.createdAtISO ? new Date(r.createdAtISO).toLocaleString() : "—";
     const dev = Number.isFinite(r.metrics?.devPct) ? `${r.metrics.devPct.toFixed(1)}% dev` : "dev —";
-    const loss = Number.isFinite(r.metrics?.weightLossPct) ? `${r.metrics.weightLossPct.toFixed(1)}% loss` : "loss —";
+    const loss = pending ? "needs weight" : (Number.isFinite(r.metrics?.weightLossPct) ? `${r.metrics.weightLossPct.toFixed(1)}% loss` : "loss —");
     const avgDelta = Number.isFinite(r.actualMetrics?.avgDeltaC) ? `Δ ${r.actualMetrics.avgDeltaC.toFixed(1)}°C` : "Δ —";
     const inW = Number.isFinite(r.greenWeightG) ? `${r.greenWeightG}g in` : "in —";
     const outW = Number.isFinite(r.roastedWeightG) ? `${r.roastedWeightG}g out` : "out —";
+    const completeAction = pending
+      ? `<button class="mini-btn primary" data-action="complete" data-id="${r.id}">Complete</button>`
+      : "";
     return `
       <div class="analytics-item">
         <div>
           <div style="font-weight:700;">${r.profileName || "Unknown profile"}</div>
           <div style="color:var(--text-muted); font-size:12px;">${date}</div>
         </div>
+        ${pending ? `<div class="badge pending">Cooling</div>` : ""}
         <div class="badge">${dev}</div>
         <div class="badge">${loss}</div>
         <div class="badge">${avgDelta}</div>
         <div class="badge">${inW}</div>
         <div class="badge">${outW}</div>
         <div class="analytics-actions">
+          ${completeAction}
           <button class="mini-btn" data-action="export" data-id="${r.id}">Export</button>
           <button class="mini-btn danger" data-action="delete" data-id="${r.id}">Delete</button>
         </div>
@@ -396,6 +659,7 @@ dropBtn.addEventListener("click", () => {
   session.stop();
   if (tickHandle) clearInterval(tickHandle);
   nextActualPromptS = null;
+  actualPromptDue = false;
 
   pauseBtn.disabled = true;
   resumeBtn.disabled = true;
@@ -410,16 +674,30 @@ dropBtn.addEventListener("click", () => {
 
   nextEventEl.textContent = "Roast ended (Drop).";
 
-  // Open summary modal
-  greenWeight.value = "";
-  roastedWeight.value = "";
-  renderSummaryPreview();
-  summaryModal.showModal();
-  setTimeout(() => greenWeight.focus(), 50);
-});
+  const droppedSession = session;
+  const pendingRecord = buildRoastRecordFromSession(droppedSession, {
+    status: "pendingWeight",
+    greenWeightG: defaultGreenWeightG(droppedSession.profile),
+    roastedWeightG: null
+  });
 
-yellowBtn.addEventListener("click", () => session?.mark("yellow"));
-fcBtn.addEventListener("click", () => session?.mark("firstCrack"));
+  try {
+    saveRoast(pendingRecord);
+    renderAnalytics();
+    showToast("Roast dropped. Final weight can be added after cooling.");
+    profileStatus.textContent = `Cooling: ${droppedSession.profile.name}`;
+
+    session = new RoastSession(droppedSession.profile);
+    enableControls(true);
+    resetRoastActionButtons();
+    setGeneStartTimeFromProfile(session.profile);
+    graph.render(session.profile, session.actualReadings);
+    renderIdle();
+  } catch (err) {
+    showToast(err?.message || "Failed to save pending roast.");
+    profileStatus.textContent = err?.message || "Failed to save pending roast.";
+  }
+});
 
 // ---- Calibration ----
 calBtn.addEventListener("click", () => {
@@ -463,34 +741,30 @@ function showEvent(ev, recTempC) {
 
 // ---- Summary modal ----
 function renderSummaryPreview() {
-  if (!session) return;
+  const record = summaryContext?.record || null;
+  if (!record) return;
 
-  const fc = session.markers.firstCrackAtS;
-  const drop = session.markers.dropAtS;
-
+  const fc = record.markers?.firstCrackAtS;
+  const drop = record.markers?.dropAtS;
   const dev = developmentMetrics(fc, drop);
   const greenG = Number(greenWeight.value);
   const roastedG = Number(roastedWeight.value);
   const lossPct = weightLossPct(greenG, roastedG);
-
-  const hasDev = !!dev;
-  const actualReadings = Array.isArray(session.actualReadings) ? session.actualReadings : [];
-  const timeShiftS = session.cal?.timeShiftS || 0;
-  const actualDeltas = actualReadings.map((r) => {
-    const planned = plannedTempAt(session.profile.points, Math.max(0, r.tS - timeShiftS));
-    return r.tempC - planned;
-  });
-  const actualAvg = actualDeltas.length ? actualDeltas.reduce((a, b) => a + b, 0) / actualDeltas.length : null;
-  const actualMax = actualDeltas.length ? Math.max(...actualDeltas) : null;
-  const actualMin = actualDeltas.length ? Math.min(...actualDeltas) : null;
+  const hasDev = !!dev || Number.isFinite(record.metrics?.devPct);
+  const actualAvg = record.actualMetrics?.avgDeltaC ?? null;
+  const actualMax = record.actualMetrics?.maxDeltaC ?? null;
+  const actualMin = record.actualMetrics?.minDeltaC ?? null;
 
   const lines = [];
-  lines.push(`Profile: ${session.profile.name}`);
-  lines.push(`Total time: ${formatMMSS(drop ?? session.elapsedS())}`);
+  lines.push(`Profile: ${record.profileName || "Unknown profile"}`);
+  lines.push(`Total time: ${formatMMSS(drop ?? 0)}`);
 
   if (dev) {
     lines.push(`1C start: ${formatMMSS(fc)}`);
     lines.push(`Development: ${formatMMSS(dev.devS)} (${dev.devPct.toFixed(1)}%)`);
+  } else if (Number.isFinite(record.metrics?.devS) && Number.isFinite(record.metrics?.devPct)) {
+    lines.push(`1C start: ${Number.isFinite(fc) ? formatMMSS(fc) : "—"}`);
+    lines.push(`Development: ${formatMMSS(record.metrics.devS)} (${record.metrics.devPct.toFixed(1)}%)`);
   } else {
     lines.push(`Development: (mark 1C Start for dev%)`);
   }
@@ -506,7 +780,7 @@ function renderSummaryPreview() {
 
   lines.push("");
   lines.push("Feedback:");
-  lines.push(feedbackText({ devPct: dev?.devPct ?? null, lossPct, hasDev }));
+  lines.push(feedbackText({ devPct: dev?.devPct ?? record.metrics?.devPct ?? null, lossPct, hasDev }));
 
   summaryOutput.textContent = lines.join("\n");
 }
@@ -514,57 +788,48 @@ function renderSummaryPreview() {
 greenWeight.addEventListener("input", renderSummaryPreview);
 roastedWeight.addEventListener("input", renderSummaryPreview);
 
-closeSummaryBtn.addEventListener("click", () => summaryModal.close());
+function openSummaryForRecord(record) {
+  summaryContext = { record };
+  summaryTitle.textContent = record.status === "pendingWeight" ? "Finalize Roast Weight" : "Roast Summary";
+  summaryHint.textContent = record.status === "pendingWeight"
+    ? "Enter the cooled roasted weight, adjust green weight if needed, then save the finished log."
+    : "Review or update the saved roast weights.";
+  saveSummaryBtn.textContent = record.status === "pendingWeight" ? "Save Final Weight" : "Save Log";
+  greenWeight.value = Number.isFinite(record.greenWeightG) ? record.greenWeightG : "";
+  roastedWeight.value = Number.isFinite(record.roastedWeightG) ? record.roastedWeightG : "";
+  renderSummaryPreview();
+  summaryModal.showModal();
+  setTimeout(() => roastedWeight.focus(), 50);
+}
+
+closeSummaryBtn.addEventListener("click", () => {
+  summaryModal.close();
+});
+
+summaryModal.addEventListener("close", () => {
+  summaryContext = null;
+});
 
 saveSummaryBtn.addEventListener("click", () => {
-  if (!session) return;
-
+  const record = summaryContext?.record;
+  if (!record) return;
   const greenG = Number(greenWeight.value);
   const roastedG = Number(roastedWeight.value);
-
-  const fc = session.markers.firstCrackAtS;
-  const drop = session.markers.dropAtS;
-
-  const dev = developmentMetrics(fc, drop);
   const lossPct = weightLossPct(greenG, roastedG);
 
-  const actualReadings = Array.isArray(session.actualReadings) ? session.actualReadings : [];
-  const timeShiftS = session.cal?.timeShiftS || 0;
-  const actualDeltas = actualReadings.map((r) => {
-    const planned = plannedTempAt(session.profile.points, Math.max(0, r.tS - timeShiftS));
-    return r.tempC - planned;
-  });
-  const actualAvg = actualDeltas.length ? actualDeltas.reduce((a, b) => a + b, 0) / actualDeltas.length : null;
-  const actualMax = actualDeltas.length ? Math.max(...actualDeltas) : null;
-  const actualMin = actualDeltas.length ? Math.min(...actualDeltas) : null;
-
-  const record = {
-    id: crypto.randomUUID(),
-    createdAtISO: new Date().toISOString(),
-    profileName: session.profile.name,
-    greenWeightG: Number.isFinite(greenG) ? greenG : null,
-    roastedWeightG: Number.isFinite(roastedG) ? roastedG : null,
-    markers: { ...session.markers },
-    calibration: { ...session.cal },
-    actualReadings,
-    actualMetrics: actualDeltas.length ? {
-      avgDeltaC: actualAvg,
-      maxDeltaC: actualMax,
-      minDeltaC: actualMin
-    } : null,
-    metrics: {
-      devS: dev?.devS ?? null,
-      devPct: dev?.devPct ?? null,
-      weightLossPct: lossPct
-    },
-    feedback: feedbackText({ devPct: dev?.devPct ?? null, lossPct, hasDev: !!dev })
-  };
+  if (lossPct == null) {
+    showToast("Enter valid green and roasted weights.");
+    return;
+  }
 
   try {
-    saveRoast(record);
+    const updated = updateRoast(record.id, (current) => finalizeRoastRecord(current, greenG, roastedG));
+    if (!updated) throw new Error("Roast log was not found.");
     summaryModal.close();
-    profileStatus.textContent = `Saved roast: ${session.profile.name}`;
+    summaryContext = null;
+    profileStatus.textContent = `Saved roast: ${record.profileName}`;
     renderAnalytics();
+    showToast("Final weight saved.");
   } catch (err) {
     showToast(err?.message || "Failed to save roast.");
     profileStatus.textContent = err?.message || "Failed to save roast.";
@@ -664,6 +929,21 @@ exportProfileBtn.addEventListener("click", () => {
   downloadJson(`${name}.json`, record.profile);
 });
 
+writeProfileBtn.addEventListener("click", async () => {
+  const name = profileSelect.value || session?.profile?.name;
+  if (!name) return;
+  const record = getProfile(name);
+  const profile = record?.profile || session?.profile;
+  if (!profile) return;
+
+  try {
+    const filename = await writeProfileJsonFile(profile);
+    showToast(`Wrote ${filename}`);
+  } catch (err) {
+    showToast(err?.message || "Failed to write JSON file.");
+  }
+});
+
 deleteProfileBtn.addEventListener("click", () => {
   const name = profileSelect.value;
   if (!name) return;
@@ -697,6 +977,82 @@ testAudioBtn.addEventListener("click", () => {
   playBeep({ frequency: 660, durationMs: 180, volume: 0.18 });
 });
 
+// ---- Guided builder controls ----
+openBuilderBtn.addEventListener("click", () => openGuidedBuilder(createDraft()));
+
+editProfileBtn.addEventListener("click", () => {
+  const profile = getProfileForEditing();
+  if (!profile) {
+    showToast("Load or select a profile first.");
+    return;
+  }
+  openGuidedBuilder(inferDraftFromProfile(profile));
+});
+
+builderCancelBtn.addEventListener("click", () => builderModal.close());
+builderResetBtn.addEventListener("click", resetBuilderToBaseline);
+
+[builderCountry, builderProcess, builderRoastLevel].forEach((input) => {
+  input.addEventListener("change", resetBuilderToBaseline);
+});
+
+[builderRegion, builderBatchSize].forEach((input) => {
+  input.addEventListener("input", () => {
+    refreshBuilderAutoName();
+    renderBuilderPreview();
+  });
+});
+
+[
+  builderName,
+  builderCropYear,
+  builderChargeTemp,
+  builderDryingMin,
+  builderMaillardTemp,
+  builderMaillardMin,
+  builderPeakTemp,
+  builderDevelopmentTemp,
+  builderDevelopmentPct,
+  builderNotes
+].forEach((input) => {
+  input.addEventListener("input", renderBuilderPreview);
+});
+
+builderPreviewBtn.addEventListener("click", () => {
+  const result = renderBuilderPreview();
+  loadProfile(parseProfile(result.profile), `Previewing: ${result.profile.name}`);
+  builderModal.close();
+});
+
+builderSaveBtn.addEventListener("click", () => {
+  const result = renderBuilderPreview();
+  try {
+    saveProfile(result.profile);
+    loadProfile(parseProfile(result.profile), `Loaded: ${result.profile.name}`);
+    renderProfileLibrary();
+    profileSelect.value = result.profile.name;
+    builderModal.close();
+    showToast(`Saved profile: ${result.profile.name}`);
+  } catch (err) {
+    showToast(err?.message || "Failed to save profile.");
+  }
+});
+
+builderExportBtn.addEventListener("click", () => {
+  const result = renderBuilderPreview();
+  downloadJson(`${safeFilename(result.profile.name)}.json`, result.profile);
+});
+
+builderWriteBtn.addEventListener("click", async () => {
+  const result = renderBuilderPreview();
+  try {
+    const filename = await writeProfileJsonFile(result.profile);
+    showToast(`Wrote ${filename}`);
+  } catch (err) {
+    showToast(err?.message || "Failed to write JSON file.");
+  }
+});
+
 // ---- Init ----
 function initFromStorage() {
   const storageOk = storageAvailable();
@@ -708,6 +1064,11 @@ function initFromStorage() {
   audioEnabled = localStorage.getItem(AUDIO_KEY) === "1";
   audioToggle.checked = audioEnabled;
   audioStatus.textContent = audioEnabled ? "Audio: armed" : "Audio: off";
+  populateBuilderSelect(builderCountry, guidedProfileOptions.countries);
+  populateBuilderSelect(builderProcess, guidedProfileOptions.processes);
+  populateBuilderSelect(builderRoastLevel, guidedProfileOptions.roastLevels);
+  applyBuilderDraft(createDraft());
+  renderBuilderPreview();
   renderProfileLibrary();
   renderAnalytics();
   updateActualInlineStatus();
@@ -777,6 +1138,11 @@ analyticsList.addEventListener("click", (e) => {
   const roasts = listRoasts();
   const roast = roasts.find((r) => r.id === id);
   if (!roast) return;
+
+  if (action === "complete") {
+    openSummaryForRecord(roast);
+    return;
+  }
 
   if (action === "export") {
     const date = roast.createdAtISO ? new Date(roast.createdAtISO).toISOString().slice(0, 19).replace(/:/g, "-") : "unknown-date";

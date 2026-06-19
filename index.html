@@ -10,143 +10,149 @@
 
 <body>
   <div class="app-container">
-    <div class="sidebar">
-      <header>
-        <h1>Gene Cafe Roast Helper</h1>
-      </header>
+    <header class="app-header">
+      <h1>Gene Cafe Roast Helper</h1>
+    </header>
 
-      <!-- Profile Library Panel -->
-      <div class="panel">
-        <div class="panel-row">
-          <div style="font-size:14px; font-weight:700;">Profile Library</div>
-          <span id="profileCount" class="status-pill">0 saved</span>
-        </div>
-        <div class="file-upload-wrapper mt-4">
-          <input id="profileFile" type="file" accept="application/json" />
-          <span id="profileStatus" class="status-pill">No profile loaded</span>
-        </div>
-        <div class="mt-4">
+    <!-- Profile Library Panel -->
+    <div class="panel profile-panel">
+      <div class="panel-row profile-panel-header">
+        <div class="panel-title">Profile Library</div>
+        <span id="profileCount" class="status-pill">0 saved</span>
+      </div>
+      <div class="profile-panel-grid">
+        <div class="profile-block">
+          <div class="profile-block-label">Import</div>
+          <div class="file-upload-wrapper">
+            <input id="profileFile" type="file" accept="application/json" />
+            <span id="profileStatus" class="status-pill">No profile loaded</span>
+          </div>
           <span id="storageStatus" class="status-pill">Storage: checking…</span>
         </div>
 
-        <div class="mt-4" style="display:flex; gap:10px; align-items:center;">
-          <select id="profileSelect" class="select w-full">
-            <option value="">No profiles yet</option>
-          </select>
-          <button id="loadProfileBtn" class="primary" style="min-width:120px;">Load</button>
+        <div class="profile-block">
+          <div class="profile-block-label">Library</div>
+          <div class="profile-select-row">
+            <select id="profileSelect" class="select w-full">
+              <option value="">No profiles yet</option>
+            </select>
+            <button id="loadProfileBtn" class="primary">Load</button>
+          </div>
         </div>
 
-        <div class="mt-4" style="display:flex; gap:10px; flex-wrap:wrap;">
+        <div class="profile-actions">
+          <button id="openBuilderBtn" class="primary">Guided Builder</button>
+          <button id="editProfileBtn">Edit Loaded</button>
           <button id="saveProfileBtn">Save Loaded</button>
           <button id="exportProfileBtn">Export</button>
+          <button id="writeProfileBtn">Write JSON File</button>
           <button id="deleteProfileBtn" class="danger">Delete</button>
         </div>
       </div>
+    </div>
 
-      <!-- Stats Panel -->
-      <div class="panel">
-        <div class="display-grid">
-          <div class="display-item time-section">
-            <span class="display-label">Gene Time</span>
-            <!-- Prominent countdown timer -->
-            <span class="display-value xl" id="geneTime">15.0</span>
+    <!-- Stats Panel -->
+    <div class="panel stats-panel">
+      <div class="display-grid">
+        <div class="display-item time-section">
+          <span class="display-label">Gene Time</span>
+          <!-- Prominent countdown timer -->
+          <span class="display-value xl" id="geneTime">15.0</span>
 
-            <!-- Input for starting time -->
-            <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">
-              <label style="display:inline-flex; align-items:center; gap:6px;">
-                Start:
-                <input type="number" id="geneStartTime" value="15.0" step="0.1"
-                  style="width:70px; padding:4px; font-size:14px;">
-                min
-              </label>
+          <!-- Input for starting time -->
+          <div style="margin-top: 8px; font-size: 12px; color: var(--text-muted);">
+            <label style="display:inline-flex; align-items:center; gap:6px;">
+              Start:
+              <input type="number" id="geneStartTime" value="15.0" step="0.1"
+                style="width:70px; padding:4px; font-size:14px;">
+              min
+            </label>
+          </div>
+        </div>
+
+        <div class="display-item temp-section">
+          <!-- Split Display: Target / Set -->
+          <div style="display:flex; justify-content:space-around; width:100%; gap:10px;">
+            <div>
+              <span class="display-label">Profile</span>
+              <span class="display-value" id="profileTemp">--°C</span>
+            </div>
+            <div>
+              <span class="display-label">Rec. Set</span>
+              <span class="display-value" id="setTemp">--°C</span>
             </div>
           </div>
 
-          <div class="display-item temp-section">
-            <!-- Split Display: Target / Set -->
-            <div style="display:flex; justify-content:space-around; width:100%; gap:10px;">
-              <div>
-                <span class="display-label">Profile</span>
-                <span class="display-value" id="profileTemp">--°C</span>
-              </div>
-              <div>
-                <span class="display-label">Rec. Set</span>
-                <span class="display-value" id="setTemp">--°C</span>
-              </div>
-            </div>
-
-            <div style="margin-top: auto; padding-top:12px;">
-              <span class="display-label">Elapsed</span>
-              <div style="font-size: 20px; font-weight:700; color:var(--text-main);" id="elapsed">00:00</div>
-            </div>
+          <div style="margin-top: auto; padding-top:12px;">
+            <span class="display-label">Elapsed</span>
+            <div style="font-size: 20px; font-weight:700; color:var(--text-main);" id="elapsed">00:00</div>
           </div>
-        </div>
-
-        <div class="next-event">
-          Next: <span id="nextEvent">—</span>
         </div>
       </div>
 
-      <!-- Controls Panel -->
-      <div class="panel">
-        <div class="controls-grid">
-          <button id="startBtn" class="success" disabled>Start Roast</button>
-          <button id="dropBtn" class="danger" disabled>Drop Roast</button>
-          <button id="pauseBtn" disabled>Pause</button>
-          <button id="resumeBtn" disabled>Resume</button>
-        </div>
-
-        <div class="sub-controls">
-          <button id="yellowBtn" disabled style="border-left: 4px solid #facc15;">Mark Yellow</button>
-          <button id="fcBtn" disabled style="border-left: 4px solid #dda0dd;">Mark 1C Start</button>
-        </div>
-
-        <div class="cal-wrapper">
-          <div style="font-size:14px; font-weight:600; color: var(--primary);">
-            <span id="calIndicator">CAL: 0°C</span>
-          </div>
-          <div style="display:flex; gap:8px;">
-            <button id="calBtn" disabled style="padding: 6px 12px; font-size:13px; min-width:auto;">Calibrate</button>
-            <button id="resetCalBtn" disabled style="padding: 6px 12px; font-size:13px; min-width:auto;">Reset</button>
-          </div>
-        </div>
-
-        <div class="mt-4 panel-row">
-          <label style="flex-direction:row; align-items:center; gap:8px;">
-            <input type="checkbox" id="audioToggle" />
-            Audio alerts
-          </label>
-          <span id="audioStatus" class="status-pill">Audio: off</span>
-          <button id="testAudioBtn" style="padding: 8px 12px; font-size:13px;">Test</button>
-        </div>
+      <div class="next-event">
+        Next: <span id="nextEvent">—</span>
       </div>
-
-      <!-- Post-Roast Analytics Panel -->
-      <div class="panel">
-        <div class="panel-row" style="margin-bottom:12px;">
-          <div style="font-size:14px; font-weight:700;">Post-Roast Analytics</div>
-          <button id="clearAnalyticsBtn" class="danger" style="padding: 6px 12px; font-size:13px;">Clear History</button>
-        </div>
-        <div id="analyticsSummary" class="output-box"></div>
-        <div id="analyticsList" class="mt-4"></div>
-      </div>
-    </div> <!-- End Sidebar -->
+    </div>
 
     <!-- Main Graph Area -->
-    <div class="main-column">
-      <div class="main-graph panel">
-        <svg id="roastChart" width="100%" height="100%" preserveAspectRatio="none"></svg>
+    <div class="main-graph panel">
+      <svg id="roastChart" width="100%" height="100%" preserveAspectRatio="none"></svg>
+    </div>
+
+    <!-- Controls Panel -->
+    <div class="panel controls-panel">
+      <div class="controls-grid">
+        <button id="startBtn" class="success" disabled>Start Roast</button>
+        <button id="dropBtn" class="danger" disabled>Drop Roast</button>
+        <button id="pauseBtn" disabled>Pause</button>
+        <button id="resumeBtn" disabled>Resume</button>
       </div>
-      <div class="panel actual-panel">
-        <div style="font-size:14px; font-weight:700; margin-bottom:10px;">Actual Temp Log</div>
-        <div class="actual-row">
-          <label style="margin:0;">Actual temp (°C)
-            <input id="actualInlineInput" type="number" inputmode="numeric" placeholder="e.g. 215" />
-          </label>
-          <button id="saveActualInlineBtn" class="primary">Log</button>
+
+      <div class="sub-controls">
+        <button id="yellowBtn" disabled style="border-left: 4px solid #facc15;">Mark Yellow</button>
+        <button id="fcBtn" disabled style="border-left: 4px solid #dda0dd;">Mark 1C Start</button>
+      </div>
+
+      <div class="cal-wrapper">
+        <div style="font-size:14px; font-weight:600; color: var(--primary);">
+          <span id="calIndicator">CAL: 0°C</span>
         </div>
-        <div id="actualInlineStatus" class="status-pill">Log every 2 minutes while roasting</div>
+        <div style="display:flex; gap:8px;">
+          <button id="calBtn" disabled style="padding: 6px 12px; font-size:13px; min-width:auto;">Calibrate</button>
+          <button id="resetCalBtn" disabled style="padding: 6px 12px; font-size:13px; min-width:auto;">Reset</button>
+        </div>
       </div>
+
+      <div class="panel-row">
+        <label style="flex-direction:row; align-items:center; gap:8px;">
+          <input type="checkbox" id="audioToggle" />
+          Audio alerts
+        </label>
+        <span id="audioStatus" class="status-pill">Audio: off</span>
+        <button id="testAudioBtn" style="padding: 8px 12px; font-size:13px;">Test</button>
+      </div>
+    </div>
+
+    <div class="panel actual-panel">
+      <div class="panel-title" style="margin-bottom:10px;">Actual Temp Log</div>
+      <div class="actual-row">
+        <label style="margin:0;">Actual temp (°C)
+          <input id="actualInlineInput" type="number" inputmode="numeric" placeholder="e.g. 215" />
+        </label>
+        <button id="saveActualInlineBtn" class="primary">Log</button>
+      </div>
+      <div id="actualInlineStatus" class="status-pill">Log every 2 minutes while roasting</div>
+    </div>
+
+    <!-- Post-Roast Analytics Panel -->
+    <div class="panel analytics-panel">
+      <div class="panel-row" style="margin-bottom:12px;">
+        <div class="panel-title">Post-Roast Analytics</div>
+        <button id="clearAnalyticsBtn" class="danger" style="padding: 6px 12px; font-size:13px;">Clear History</button>
+      </div>
+      <div id="analyticsSummary" class="output-box"></div>
+      <div id="analyticsList" class="mt-4"></div>
     </div>
   </div>
 
@@ -193,7 +199,8 @@
 
   <!-- Drop summary modal -->
   <dialog id="summaryModal">
-    <div class="modal-header">Roast Summary</div>
+    <div class="modal-header" id="summaryTitle">Roast Summary</div>
+    <p id="summaryHint" class="modal-hint">Enter final cooled weight when the beans are ready to weigh.</p>
 
     <div class="display-grid" style="grid-template-columns: 1fr 1fr; gap: 12px; text-align: left;">
       <label>Green (g)
@@ -211,6 +218,92 @@
       <button id="closeSummary">Close</button>
       <button id="saveSummary" class="success">Save Log</button>
     </div>
+  </dialog>
+
+  <!-- Guided builder modal -->
+  <dialog id="builderModal">
+    <div class="modal-header">Guided Profile Builder</div>
+
+    <div class="builder-grid">
+      <label>Profile name
+        <input id="builderName" type="text" placeholder="Auto-generated from coffee details" />
+      </label>
+
+      <label>Country
+        <select id="builderCountry" class="select"></select>
+      </label>
+
+      <label>Region
+        <input id="builderRegion" type="text" placeholder="e.g. Huila, Yirgacheffe, Tarrazu" />
+      </label>
+
+      <label>Process
+        <select id="builderProcess" class="select"></select>
+      </label>
+
+      <label>Target roast
+        <select id="builderRoastLevel" class="select"></select>
+      </label>
+
+      <label>Crop year
+        <input id="builderCropYear" type="text" placeholder="e.g. 2025" />
+      </label>
+
+      <label>Batch size (g)
+        <input id="builderBatchSize" type="number" inputmode="numeric" min="150" max="300" step="5" />
+      </label>
+
+      <label>Drying set (C)
+        <input id="builderChargeTemp" type="number" inputmode="numeric" min="150" max="175" step="1" />
+      </label>
+
+      <label>Drying time (min)
+        <input id="builderDryingMin" type="number" inputmode="decimal" min="4" max="6.25" step="0.25" />
+      </label>
+
+      <label>Maillard set (C)
+        <input id="builderMaillardTemp" type="number" inputmode="numeric" min="230" max="240" step="1" />
+      </label>
+
+      <label>Maillard time (min)
+        <input id="builderMaillardMin" type="number" inputmode="decimal" min="4" max="6.5" step="0.25" />
+      </label>
+
+      <label>Peak push (C)
+        <input id="builderPeakTemp" type="number" inputmode="numeric" min="236" max="245" step="1" />
+      </label>
+
+      <label>Development set (C)
+        <input id="builderDevelopmentTemp" type="number" inputmode="numeric" min="220" max="232" step="1" />
+      </label>
+
+      <label>Development target (%)
+        <input id="builderDevelopmentPct" type="number" inputmode="decimal" min="15" max="26" step="0.5" />
+      </label>
+    </div>
+
+    <label class="mt-4">Roast notes
+      <textarea id="builderNotes" rows="4" placeholder="Optional notes, cup goals, and real-world reminders."></textarea>
+    </label>
+
+    <div class="builder-actions mt-4">
+      <button id="builderResetBtn">Reset To Baseline</button>
+      <span id="builderStatus" class="status-pill">Builder ready</span>
+    </div>
+
+    <div id="builderSummary" class="output-box"></div>
+    <div id="builderWarnings" class="output-box builder-warnings">Guardrails active</div>
+
+    <div class="modal-footer">
+      <button id="builderCancel">Close</button>
+      <button id="builderPreviewBtn">Preview In App</button>
+      <button id="builderSaveBtn" class="success">Save To Library</button>
+      <button id="builderExportBtn">Export JSON</button>
+      <button id="builderWriteBtn" class="primary">Write To Folder</button>
+    </div>
+    <p style="font-size:13px; color:var(--text-muted); margin-top:16px;">
+      "Write To Folder" uses the browser file system picker when supported. Pick your repo's <code>profiles</code> directory to create the JSON there directly.
+    </p>
   </dialog>
 
   <script type="module" src="./src/main.js"></script>
