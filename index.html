@@ -17,37 +17,34 @@
     <!-- Profile Library Panel -->
     <div class="panel profile-panel">
       <div class="panel-row profile-panel-header">
-        <div class="panel-title">Profile Library</div>
+        <div class="panel-title">Coffee Profile</div>
         <span id="profileCount" class="status-pill">0 saved</span>
       </div>
       <div class="profile-panel-grid">
-        <div class="profile-block">
-          <div class="profile-block-label">Import</div>
-          <div class="file-upload-wrapper">
-            <input id="profileFile" type="file" accept="application/json" />
-            <span id="profileStatus" class="status-pill">No profile loaded</span>
-          </div>
-          <span id="storageStatus" class="status-pill">Storage: checking…</span>
-        </div>
-
-        <div class="profile-block">
-          <div class="profile-block-label">Library</div>
+        <div class="profile-picker">
           <div class="profile-select-row">
             <select id="profileSelect" class="select w-full">
               <option value="">No profiles yet</option>
             </select>
-            <button id="loadProfileBtn" class="primary">Load</button>
           </div>
+          <span id="profileStatus" class="status-pill">No profile loaded</span>
         </div>
 
-        <div class="profile-actions">
-          <button id="openBuilderBtn" class="primary">Guided Builder</button>
-          <button id="editProfileBtn">Edit Loaded</button>
-          <button id="saveProfileBtn">Save Loaded</button>
-          <button id="exportProfileBtn">Export</button>
-          <button id="writeProfileBtn">Write JSON File</button>
-          <button id="deleteProfileBtn" class="danger">Delete</button>
-        </div>
+        <button id="openBuilderBtn" class="primary profile-create-btn">New Coffee Profile</button>
+
+        <details class="profile-manage">
+          <summary>Manage</summary>
+          <div class="profile-manage-actions">
+            <button id="editProfileBtn">Edit Current</button>
+            <button id="exportProfileBtn">Export JSON</button>
+            <label class="file-button">
+              Import JSON
+              <input id="profileFile" type="file" accept="application/json" />
+            </label>
+            <button id="deleteProfileBtn" class="danger">Delete Profile</button>
+          </div>
+          <span id="storageStatus" class="status-pill">Storage: checking…</span>
+        </details>
       </div>
     </div>
 

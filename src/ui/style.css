@@ -114,8 +114,8 @@ p {
   }
 
   .profile-panel-grid {
-    grid-template-columns: minmax(240px, 1.05fr) minmax(220px, 0.95fr) minmax(320px, 1.35fr);
-    align-items: start;
+    grid-template-columns: minmax(320px, 1fr) auto auto;
+    align-items: center;
   }
 }
 
@@ -198,43 +198,24 @@ header h1 {
 .profile-panel {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .profile-panel-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 14px;
-}
-
-.profile-panel .file-upload-wrapper {
-  align-items: flex-start;
+  gap: 12px;
 }
 
 .profile-panel .status-pill {
   align-self: flex-start;
 }
 
-.profile-block,
-.profile-actions {
-  background: rgba(255, 255, 255, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 14px;
-  padding: 14px;
-}
-
-.profile-block {
+.profile-picker {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.profile-block-label {
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  font-weight: 700;
+  gap: 8px;
+  min-width: 0;
 }
 
 .profile-select-row {
@@ -243,47 +224,68 @@ header h1 {
   gap: 10px;
 }
 
-.profile-select-row button {
-  min-width: 104px;
+.profile-create-btn {
+  white-space: nowrap;
 }
 
-.profile-actions {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
-  align-content: start;
+.profile-manage {
+  position: relative;
+  justify-self: start;
 }
 
-/* File Input Wrapper */
-.file-upload-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
-  width: 100%;
-}
-
-input[type="file"] {
-  font-size: 14px;
-  color: var(--text-muted);
-}
-
-input[type="file"]::file-selector-button {
-  border: 1px solid rgba(0, 0, 0, 0.1);
+.profile-manage summary {
+  list-style: none;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-md);
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 600;
   background: white;
   color: var(--text-main);
-  padding: 8px 16px;
-  border-radius: 99px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.2s;
-  margin-right: 12px;
   box-shadow: var(--shadow-sm);
 }
 
-input[type="file"]::file-selector-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+.profile-manage summary::-webkit-details-marker {
+  display: none;
+}
+
+.profile-manage[open] summary {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.profile-manage-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+  min-width: min(520px, calc(100vw - 48px));
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.profile-manage .status-pill {
+  display: inline-flex;
+  margin-top: 10px;
+}
+
+.file-button {
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-md);
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  background: white;
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+}
+
+.file-button input {
+  display: none;
 }
 
 .status-pill {

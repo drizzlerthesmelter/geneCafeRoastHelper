@@ -16,10 +16,7 @@ const profileFile = el("profileFile");
 const profileStatus = el("profileStatus");
 const profileSelect = el("profileSelect");
 const profileCount = el("profileCount");
-const saveProfileBtn = el("saveProfileBtn");
-const loadProfileBtn = el("loadProfileBtn");
 const exportProfileBtn = el("exportProfileBtn");
-const writeProfileBtn = el("writeProfileBtn");
 const deleteProfileBtn = el("deleteProfileBtn");
 const storageStatus = el("storageStatus");
 const openBuilderBtn = el("openBuilderBtn");
@@ -164,7 +161,10 @@ profileFile.addEventListener("change", async (e) => {
     const text = await f.text();
     const raw = JSON.parse(text);
     const profile = parseProfile(raw);
+    saveProfile(profile);
     loadProfile(profile, `Loaded: ${profile.name}`);
+    profileSelect.value = profile.name;
+    showToast(`Imported profile: ${profile.name}`);
 
   } catch (err) {
     session = null;
@@ -237,15 +237,12 @@ function renderProfileLibrary() {
     return;
   }
 
-  const current = session?.profile?.name || profileSelect.value;
-  profileSelect.innerHTML = profiles.map((p) => {
+  const current = session?.profile?.name || "";
+  const options = profiles.map((p) => {
     const selected = p.name === current ? "selected" : "";
     return `<option value="${p.name}" ${selected}>${p.name}</option>`;
   }).join("");
-
-  if (!profileSelect.value && profiles.length) {
-    profileSelect.value = profiles[0].name;
-  }
+  profileSelect.innerHTML = `<option value="">Choose coffee profile</option>${options}`;
 }
 
 function loadProfileByName(name) {
@@ -821,20 +818,7 @@ function tick() {
 }
 
 // ---- Profile library controls ----
-saveProfileBtn.addEventListener("click", () => {
-  if (!session) return;
-  try {
-    saveProfile(session.profile);
-    showToast(`Saved profile: ${session.profile.name}`);
-    renderProfileLibrary();
-    profileSelect.value = session.profile.name;
-  } catch (err) {
-    showToast(err?.message || "Failed to save profile.");
-    profileStatus.textContent = err?.message || "Failed to save profile.";
-  }
-});
-
-loadProfileBtn.addEventListener("click", () => {
+profileSelect.addEventListener("change", () => {
   const name = profileSelect.value;
   if (!name) return;
   loadProfileByName(name);
@@ -848,27 +832,18 @@ exportProfileBtn.addEventListener("click", () => {
   downloadJson(`${name}.json`, record.profile);
 });
 
-writeProfileBtn.addEventListener("click", async () => {
-  const name = profileSelect.value || session?.profile?.name;
-  if (!name) return;
-  const record = getProfile(name);
-  const profile = record?.profile || session?.profile;
-  if (!profile) return;
-
-  try {
-    const filename = await writeProfileJsonFile(profile);
-    showToast(`Wrote ${filename}`);
-  } catch (err) {
-    showToast(err?.message || "Failed to write JSON file.");
-  }
-});
-
 deleteProfileBtn.addEventListener("click", () => {
   const name = profileSelect.value;
   if (!name) return;
   const ok = window.confirm(`Delete profile "${name}" from library?`);
   if (!ok) return;
   deleteProfile(name);
+  if (session?.profile?.name === name) {
+    session = null;
+    enableControls(false);
+    renderIdle();
+    profileStatus.textContent = "Profile deleted";
+  }
   renderProfileLibrary();
 });
 
@@ -888,7 +863,7 @@ openBuilderBtn.addEventListener("click", () => openGuidedBuilder(createDraft()))
 editProfileBtn.addEventListener("click", () => {
   const profile = getProfileForEditing();
   if (!profile) {
-    showToast("Load or select a profile first.");
+    showToast("Select a profile first.");
     return;
   }
   openGuidedBuilder(inferDraftFromProfile(profile));
