@@ -30,21 +30,23 @@
           <span id="profileStatus" class="status-pill">No profile loaded</span>
         </div>
 
-        <button id="openBuilderBtn" class="primary profile-create-btn">New Coffee Profile</button>
+        <div class="profile-action-row">
+          <button id="openBuilderBtn" class="primary profile-create-btn">New Profile</button>
 
-        <details class="profile-manage">
-          <summary>Manage</summary>
-          <div class="profile-manage-actions">
-            <button id="editProfileBtn">Edit Current</button>
-            <button id="exportProfileBtn">Export JSON</button>
-            <label class="file-button">
-              Import JSON
-              <input id="profileFile" type="file" accept="application/json" />
-            </label>
-            <button id="deleteProfileBtn" class="danger">Delete Profile</button>
-          </div>
-          <span id="storageStatus" class="status-pill">Storage: checking…</span>
-        </details>
+          <details class="profile-manage">
+            <summary>Manage</summary>
+            <div class="profile-manage-menu">
+              <button id="editProfileBtn">Edit Current</button>
+              <button id="exportProfileBtn">Export JSON</button>
+              <label class="file-button">
+                Import JSON
+                <input id="profileFile" type="file" accept="application/json" />
+              </label>
+              <button id="deleteProfileBtn" class="danger">Delete Profile</button>
+              <span id="storageStatus" class="status-pill">Storage: checking…</span>
+            </div>
+          </details>
+        </div>
       </div>
     </div>
 
