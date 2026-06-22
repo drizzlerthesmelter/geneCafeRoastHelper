@@ -114,7 +114,7 @@ p {
   }
 
   .profile-panel-grid {
-    grid-template-columns: minmax(320px, 1fr) auto auto;
+    grid-template-columns: minmax(320px, 1fr) auto;
     align-items: center;
   }
 }
@@ -199,6 +199,8 @@ header h1 {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  position: relative;
+  z-index: 30;
 }
 
 .profile-panel-grid {
@@ -224,26 +226,35 @@ header h1 {
   gap: 10px;
 }
 
+.profile-action-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  justify-self: start;
+}
+
 .profile-create-btn {
+  min-width: auto;
+  padding: 10px 14px;
+  font-size: 14px;
   white-space: nowrap;
 }
 
 .profile-manage {
   position: relative;
-  justify-self: start;
 }
 
 .profile-manage summary {
   list-style: none;
   cursor: pointer;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: var(--radius-md);
-  padding: 14px 20px;
-  font-size: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
   font-weight: 600;
-  background: white;
-  color: var(--text-main);
-  box-shadow: var(--shadow-sm);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--text-muted);
+  box-shadow: none;
 }
 
 .profile-manage summary::-webkit-details-marker {
@@ -251,24 +262,39 @@ header h1 {
 }
 
 .profile-manage[open] summary {
-  background: rgba(255, 255, 255, 0.85);
+  background: white;
+  color: var(--text-main);
+  box-shadow: var(--shadow-sm);
 }
 
-.profile-manage-actions {
+.profile-manage-menu {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-  gap: 10px;
-  margin-top: 10px;
-  min-width: min(520px, calc(100vw - 48px));
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  grid-template-columns: 1fr;
+  gap: 8px;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 20;
+  min-width: 220px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: var(--radius-md);
   padding: 12px;
+  box-shadow: var(--shadow-md);
 }
 
-.profile-manage .status-pill {
+.profile-manage-menu button,
+.profile-manage-menu .file-button {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.profile-manage-menu .status-pill {
   display: inline-flex;
-  margin-top: 10px;
+  justify-self: start;
+  margin-top: 2px;
 }
 
 .file-button {
@@ -699,8 +725,19 @@ dialog::backdrop {
     align-items: stretch;
   }
 
-  .profile-select-row button {
-    width: 100%;
+  .profile-action-row {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .profile-create-btn {
+    flex: 1;
+  }
+
+  .profile-manage-menu {
+    left: 0;
+    right: auto;
+    min-width: min(260px, calc(100vw - 48px));
   }
 
   .actual-row {
