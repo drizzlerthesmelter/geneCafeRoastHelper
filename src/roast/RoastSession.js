@@ -1,13 +1,10 @@
 import { Timer } from "./Timer.js";
 import { plannedTempAt } from "./interpolate.js";
-import { defaultCalibration } from "./calibration.js";
 
 export class RoastSession {
   constructor(profile) {
     this.profile = profile;
     this.timer = new Timer();
-    this.cal = defaultCalibration();
-    this.correction = { val: 0 };
     this._fired = new Set();
     this.markers = {};
     this.actualReadings = [];
@@ -27,35 +24,16 @@ export class RoastSession {
   elapsedS() { return this.timer.elapsedS(); }
 
   effectiveTimeS() {
-    return Math.max(0, this.elapsedS() - (this.cal.timeShiftS || 0));
+    return Math.max(0, this.elapsedS());
   }
 
   plannedTempNowC() {
     return plannedTempAt(this.profile.points, this.effectiveTimeS());
   }
 
-  // Calibration: proportional correction (no decay).
-  // We compute the error between planned and actual display temp,
-  // apply a proportional gain, then clamp the correction.
-  setCorrection(actualC) {
-    const planned = this.plannedTempNowC();
-    const error = planned - actualC;
-    const KP = 0.6;
-    const MAX_CORR = 20; // max correction applied from calibration
-    const raw = error * KP;
-    this.correction.val = Math.max(-MAX_CORR, Math.min(MAX_CORR, raw));
-  }
-
   recommendedTempC({ stepC = 1 } = {}) {
     const planned = this.plannedTempNowC();
-
-    // Apply calibrated correction (no decay)
-    const adjustedTemp = planned + this.correction.val;
-    return Math.round(adjustedTemp / stepC) * stepC;
-  }
-
-  resetCorrection() {
-    this.correction.val = 0;
+    return Math.round(planned / stepC) * stepC;
   }
 
   nextEvent() {

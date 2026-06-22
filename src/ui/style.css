@@ -655,20 +655,6 @@ dialog::backdrop {
   text-align: center;
 }
 
-/* Calibration section specifics */
-.cal-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: rgba(255, 255, 255, 0.5);
-  /* Slightly clearer */
-  padding: 8px 12px;
-  border-radius: 8px;
-  margin-top: 12px;
-  width: 100%;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
 /* Toast Notification */
 .toast-container {
   position: fixed;

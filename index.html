@@ -105,8 +105,6 @@
       <div class="controls-grid">
         <button id="startBtn" class="success" disabled>Start Roast</button>
         <button id="dropBtn" class="danger" disabled>Drop Roast</button>
-        <button id="pauseBtn" disabled>Pause</button>
-        <button id="resumeBtn" disabled>Resume</button>
       </div>
 
       <div class="sub-controls">
@@ -114,23 +112,8 @@
         <button id="fcBtn" disabled style="border-left: 4px solid #dda0dd;">Mark 1C Start</button>
       </div>
 
-      <div class="cal-wrapper">
-        <div style="font-size:14px; font-weight:600; color: var(--primary);">
-          <span id="calIndicator">CAL: 0°C</span>
-        </div>
-        <div style="display:flex; gap:8px;">
-          <button id="calBtn" disabled style="padding: 6px 12px; font-size:13px; min-width:auto;">Calibrate</button>
-          <button id="resetCalBtn" disabled style="padding: 6px 12px; font-size:13px; min-width:auto;">Reset</button>
-        </div>
-      </div>
-
       <div class="panel-row">
-        <label style="flex-direction:row; align-items:center; gap:8px;">
-          <input type="checkbox" id="audioToggle" />
-          Audio alerts
-        </label>
-        <span id="audioStatus" class="status-pill">Audio: off</span>
-        <button id="testAudioBtn" style="padding: 8px 12px; font-size:13px;">Test</button>
+        <span id="audioStatus" class="status-pill">Audio alerts on</span>
       </div>
     </div>
 
@@ -163,22 +146,6 @@
     <div class="modal-footer">
       <button id="eventOk" class="primary">OK, Got it</button>
     </div>
-  </dialog>
-
-  <!-- Calibration modal -->
-  <dialog id="calModal">
-    <div class="modal-header">Calibration</div>
-    <p>Enter the temperature currently shown on the Gene Cafe display.</p>
-    <div style="margin: 20px 0;">
-      <input id="calInput" type="number" inputmode="numeric" placeholder="e.g. 205" />
-    </div>
-    <div class="modal-footer">
-      <button id="closeCal">Cancel</button>
-      <button id="applyTempOffset" class="primary">Apply Offset</button>
-    </div>
-    <p style="font-size:13px; color:var(--text-muted); margin-top:16px;">
-      This aligns your plan if you’re consistently running hotter/colder.
-    </p>
   </dialog>
 
   <!-- Start modal -->

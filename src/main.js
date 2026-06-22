@@ -33,17 +33,10 @@ const geneStartTimeEl = el("geneStartTime");
 const nextEventEl = el("nextEvent");
 
 const startBtn = el("startBtn");
-const pauseBtn = el("pauseBtn");
-const resumeBtn = el("resumeBtn");
 const dropBtn = el("dropBtn");
 
 const yellowBtn = el("yellowBtn");
 const fcBtn = el("fcBtn");
-const calBtn = el("calBtn");
-const resetCalBtn = el("resetCalBtn");
-const calIndicator = el("calIndicator");
-const audioToggle = el("audioToggle");
-const testAudioBtn = el("testAudioBtn");
 const audioStatus = el("audioStatus");
 const analyticsSummary = el("analyticsSummary");
 const analyticsList = el("analyticsList");
@@ -54,12 +47,6 @@ const eventModal = el("eventModal");
 const eventTitle = el("eventTitle");
 const eventInstruction = el("eventInstruction");
 const eventOk = el("eventOk");
-
-// Calibration modal
-const calModal = el("calModal");
-const calInput = el("calInput");
-const applyTempOffsetBtn = el("applyTempOffset");
-const closeCalBtn = el("closeCal");
 
 // Summary modal
 const summaryModal = el("summaryModal");
@@ -110,7 +97,7 @@ const actualInlineStatus = el("actualInlineStatus");
 let session = null;
 let tickHandle = null;
 const graph = new RoastGraph(document.getElementById("roastChart"));
-let audioEnabled = false;
+let audioEnabled = true;
 let audioCtx = null;
 let approachFired = new Set();
 let nextActualPromptS = null;
@@ -120,7 +107,6 @@ let builderResult = null;
 let builderDirectoryHandle = null;
 let summaryContext = null;
 
-const AUDIO_KEY = "gene_audio_enabled_v1";
 const APPROACH_EVENT_S = 30;
 
 function ensureAudio() {
@@ -130,7 +116,7 @@ function ensureAudio() {
     audioCtx = new Ctx();
   }
   if (audioCtx.state === "suspended") audioCtx.resume();
-  audioStatus.textContent = `Audio: ${audioCtx.state}`;
+  audioStatus.textContent = `Audio alerts ${audioCtx.state}`;
   return audioCtx;
 }
 
@@ -208,13 +194,9 @@ function loadProfile(profile, statusText = `Loaded: ${profile.name}`) {
 
 function enableControls(enabled) {
   startBtn.disabled = !enabled;
-  pauseBtn.disabled = true;
-  resumeBtn.disabled = true;
   dropBtn.disabled = true;
   yellowBtn.disabled = true;
   fcBtn.disabled = true;
-  calBtn.disabled = true;
-  resetCalBtn.disabled = true;
   actualInlineInput.disabled = true;
   saveActualInlineBtn.disabled = true;
 }
@@ -244,7 +226,6 @@ function renderIdle() {
   geneTimeEl.textContent = startVal.toFixed(1);
 
   nextEventEl.textContent = "—";
-  calIndicator.textContent = "CAL: 0°C";
 }
 
 function renderProfileLibrary() {
@@ -432,9 +413,8 @@ function defaultGreenWeightG(profile) {
 
 function actualMetricsForSession(roastSession) {
   const actualReadings = Array.isArray(roastSession.actualReadings) ? roastSession.actualReadings : [];
-  const timeShiftS = roastSession.cal?.timeShiftS || 0;
   const actualDeltas = actualReadings.map((r) => {
-    const planned = plannedTempAt(roastSession.profile.points, Math.max(0, r.tS - timeShiftS));
+    const planned = plannedTempAt(roastSession.profile.points, Math.max(0, r.tS));
     return r.tempC - planned;
   });
 
@@ -466,7 +446,6 @@ function buildRoastRecordFromSession(roastSession, { status = "complete", greenW
     greenWeightG: greenG,
     roastedWeightG: roastedG,
     markers: { ...roastSession.markers },
-    calibration: { ...roastSession.cal },
     actualReadings,
     actualMetrics: actualMetricsForSession(roastSession),
     metrics: {
@@ -600,33 +579,17 @@ function startRoast() {
   actualPromptDue = false;
   graph.render(session.profile, session.actualReadings);
   startBtn.disabled = true;
-  pauseBtn.disabled = false;
   dropBtn.disabled = false;
   yellowBtn.disabled = false;
   fcBtn.disabled = false;
-  calBtn.disabled = false;
-  resetCalBtn.disabled = false;
   actualInlineInput.disabled = false;
   saveActualInlineBtn.disabled = false;
   updateActualInlineStatus();
+  armAudioAlerts();
 
   if (tickHandle) clearInterval(tickHandle);
   tickHandle = setInterval(tick, 250);
 }
-
-pauseBtn.addEventListener("click", () => {
-  if (!session) return;
-  session.pause();
-  pauseBtn.disabled = true;
-  resumeBtn.disabled = false;
-});
-
-resumeBtn.addEventListener("click", () => {
-  if (!session) return;
-  session.resume();
-  resumeBtn.disabled = true;
-  pauseBtn.disabled = false;
-});
 
 yellowBtn.addEventListener("click", () => {
   if (!session) return;
@@ -661,13 +624,9 @@ dropBtn.addEventListener("click", () => {
   nextActualPromptS = null;
   actualPromptDue = false;
 
-  pauseBtn.disabled = true;
-  resumeBtn.disabled = true;
   dropBtn.disabled = true;
   yellowBtn.disabled = true;
   fcBtn.disabled = true;
-  calBtn.disabled = true;
-  resetCalBtn.disabled = true;
   actualInlineInput.disabled = true;
   saveActualInlineBtn.disabled = true;
   updateActualInlineStatus();
@@ -698,36 +657,6 @@ dropBtn.addEventListener("click", () => {
     profileStatus.textContent = err?.message || "Failed to save pending roast.";
   }
 });
-
-// ---- Calibration ----
-calBtn.addEventListener("click", () => {
-  if (!session) return;
-  calInput.value = "";
-  calModal.showModal();
-  setTimeout(() => calInput.focus(), 50);
-});
-
-closeCalBtn.addEventListener("click", () => calModal.close());
-
-applyTempOffsetBtn.addEventListener("click", () => {
-  if (!session) return;
-  const actual = Number(calInput.value);
-  if (!Number.isFinite(actual)) return;
-
-  // Compute offset based on current planned temp at this moment.
-  session.setCorrection(actual);
-
-  // Force update immediately
-  calIndicator.textContent = `CORR: Active`;
-  calModal.close();
-});
-
-resetCalBtn.addEventListener("click", () => {
-  if (!session) return;
-  session.resetCorrection();
-  calIndicator.textContent = "CORR: 0°C";
-});
-
 
 // ---- Event modal ----
 eventOk.addEventListener("click", () => eventModal.close());
@@ -853,16 +782,6 @@ function tick() {
   const clampedRec = Math.min(MAX_SET_C, Math.max(0, recTempC));
   setTempEl.textContent = `${clampedRec}°C`;
 
-  // Update correction indicator dynamic
-  const correctionVal = clampedRec - plannedC;
-  if (Math.abs(correctionVal) > 0) {
-    calIndicator.textContent = `CORR: ${correctionVal > 0 ? "+" : ""}${correctionVal}°C`;
-    calIndicator.style.opacity = "1";
-  } else {
-    calIndicator.textContent = `CORR: 0°C`;
-    calIndicator.style.opacity = "0.5";
-  }
-
   elapsedEl.textContent = formatMMSS(elapsedS);
 
   // Gene Time Logic: Count down from the start time
@@ -953,29 +872,15 @@ deleteProfileBtn.addEventListener("click", () => {
   renderProfileLibrary();
 });
 
-// ---- Audio controls ----
-audioToggle.addEventListener("change", () => {
-  audioEnabled = audioToggle.checked;
-  localStorage.setItem(AUDIO_KEY, audioEnabled ? "1" : "0");
-  if (audioEnabled) {
-    const ctx = ensureAudio();
-    if (!ctx) {
-      showToast("Audio not supported in this browser.");
-      audioStatus.textContent = "Audio: unsupported";
-    } else {
-      showToast("Audio armed.");
-      audioStatus.textContent = `Audio: ${ctx.state}`;
-      playBeep({ frequency: 660, durationMs: 120, volume: 0.16 });
-    }
-  } else {
-    audioStatus.textContent = "Audio: off";
+// ---- Audio ----
+function armAudioAlerts() {
+  audioEnabled = true;
+  const ctx = ensureAudio();
+  if (!ctx) {
+    audioStatus.textContent = "Audio alerts unsupported";
+    showToast("Audio not supported in this browser.");
   }
-});
-
-testAudioBtn.addEventListener("click", () => {
-  audioEnabled = audioToggle.checked;
-  playBeep({ frequency: 660, durationMs: 180, volume: 0.18 });
-});
+}
 
 // ---- Guided builder controls ----
 openBuilderBtn.addEventListener("click", () => openGuidedBuilder(createDraft()));
@@ -1061,9 +966,8 @@ function initFromStorage() {
     showToast("Storage blocked. Profiles and analytics will not persist.");
   }
 
-  audioEnabled = localStorage.getItem(AUDIO_KEY) === "1";
-  audioToggle.checked = audioEnabled;
-  audioStatus.textContent = audioEnabled ? "Audio: armed" : "Audio: off";
+  audioEnabled = true;
+  audioStatus.textContent = "Audio alerts on";
   populateBuilderSelect(builderCountry, guidedProfileOptions.countries);
   populateBuilderSelect(builderProcess, guidedProfileOptions.processes);
   populateBuilderSelect(builderRoastLevel, guidedProfileOptions.roastLevels);
